@@ -13,15 +13,19 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wstrict-aliasing -pedantic")
 set(HEADERS
     include/ht_malloc.h
     include/ht_defer.h
+    include/ht_bt.h
+    include/ht_table.h
+    include/ht_alloc_header.h
 )
 
 set(SOURCES
     src/ht_malloc.c
+    src/ht_bt.c
 )
 
-add_executable(hm_tests
+add_executable(ht_tests
     ${HEADERS}
     ${SOURCES}
     src/tests/main.c
 )
-target_include_directories(hm_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(ht_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
