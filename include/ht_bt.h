@@ -6,11 +6,11 @@
 #define HT_MAX_BT_DEPTH 10
 
 typedef struct {
-    int max_depth;
+	int max_depth;
 } ht_bt_collect_config_t;
 
 typedef struct {
-    uintptr_t bt[HT_MAX_BT_DEPTH];
+	uintptr_t bt[HT_MAX_BT_DEPTH];
 } ht_backtrace_t;
 
 int ht_bt_collect(const ht_bt_collect_config_t *cfg, ht_backtrace_t *bt);
