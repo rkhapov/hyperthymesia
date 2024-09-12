@@ -34,7 +34,8 @@ void test_ht_malloc_ht_free()
 	char *ptrs[ptrs_count];
 
 	size_t rss_start = get_process_rss();
-	printf("[ht_malloc & ht_free] before allocation rss = %zu\n", rss_start);
+	printf("[ht_malloc & ht_free] before allocation rss = %zu\n",
+	       rss_start);
 
 	for (int i = 0; i < ptrs_count; ++i) {
 		char *mem = ht_malloc(alloc_size);
@@ -49,7 +50,8 @@ void test_ht_malloc_ht_free()
 	}
 
 	size_t rss_after_alloc = get_process_rss();
-	printf("[ht_malloc & ht_free] after allocation rss = %zu\n", rss_after_alloc);
+	printf("[ht_malloc & ht_free] after allocation rss = %zu\n",
+	       rss_after_alloc);
 
 	size_t growth = rss_after_alloc - rss_start;
 
