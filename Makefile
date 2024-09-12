@@ -1,6 +1,7 @@
 BUILD_TEST_DIR=build
 BUILD_REL_DIR=build
 HM_DIR=$(PWD)
+COMPILE_CONCURRENCY=8
 
 FMT_BIN:=clang-format
 CMAKE_BIN:=cmake
@@ -13,3 +14,11 @@ clean:
 
 apply_fmt:
 	find ./ -maxdepth 5 -iname '*.h' -o -iname '*.c' | xargs $(FMT_BIN) -i
+
+build_release: clean
+	mkdir -p $(BUILD_REL_DIR)
+	cd $(BUILD_REL_DIR) && $(CMAKE_BIN) -DCMAKE_BUILD_TYPE=Release $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
+
+build_dbg: clean
+	mkdir -p $(BUILD_TEST_DIR)
+	cd $(BUILD_TEST_DIR) && $(CMAKE_BIN) -DCMAKE_BUILD_TYPE=Debug $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
