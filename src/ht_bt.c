@@ -34,7 +34,9 @@ static void *get_current_thread_stack_start()
 		return NULL;
 	}
 
-	return stackaddr + stacksize;
+	pthread_attr_destroy(&attr);
+
+	return (void*)((uintptr_t)stackaddr + stacksize);
 }
 
 int ht_bt_collect(ht_backtrace_t *bt)
@@ -105,12 +107,15 @@ static uint32_t get_mur_mur_hash(const void *key, int len, uint32_t seed)
 	switch (len) {
 	case 3:
 		h += data[2] << 16;
+		/* fall through */
 	case 2:
 		h += data[1] << 8;
+		/* fall through */
 	case 1:
 		h += data[0];
 		h *= m;
 		h ^= h >> r;
+		/* fall through */
 	};
 
 	h *= m;

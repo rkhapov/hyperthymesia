@@ -7,6 +7,7 @@
 #include <sys/resource.h>
 
 #include "ht_defer.h"
+#include "ht_table.h"
 #include "ht_malloc.h"
 
 static size_t get_process_rss()
@@ -29,6 +30,8 @@ static size_t get_process_rss()
 
 void test_ht_malloc_ht_free()
 {
+	ht_thread_table_init((1 << 16), 30);
+
 	const int ptrs_count = 100;
 	const size_t alloc_size = 10 * 1024 * 1024;
 
@@ -71,4 +74,6 @@ void test_ht_malloc_ht_free()
 		printf("[ht_malloc & ht_free] ht_free doesn't work\n");
 		abort();
 	}
+
+	ht_thread_table_destroy();
 }

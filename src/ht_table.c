@@ -104,5 +104,9 @@ int ht_thread_table_destroy()
 	}
 
 	free(thread_table.buckets);
+
+	thread_table.buckets = NULL;
+	thread_table.buckets_count = 0;
+
 	return 0;
 }

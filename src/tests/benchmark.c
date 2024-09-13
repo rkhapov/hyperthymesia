@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include "ht_malloc.h"
+#include "ht_table.h"
 
 static unsigned long long get_time_ns()
 {
@@ -60,6 +61,8 @@ static uint64_t *benchmark_ptrs[benchmark_alloc_count];
 
 void test_malloc_benchmark()
 {
+	ht_thread_table_init((1 << 16), 30);
+
 	const int alloc_sizes[] = { 1 << 3, 1 << 4,  1 << 8,
 				    1 << 9, 1 << 12, 1 << 16 };
 
@@ -86,4 +89,6 @@ void test_malloc_benchmark()
 		printf("[benchmark] allocations of size %d is slower on ht from %f to %f times\n",
 		       alloc_size, min, max);
 	}
+
+	ht_thread_table_destroy();
 }
