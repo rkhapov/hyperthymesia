@@ -33,7 +33,7 @@ void *ht_malloc(size_t size)
 	}
 
 	stats->alloc_count++;
-	stats->size += size;
+	stats->total_size += size;
 
 	return (void *)(header + 1);
 }
@@ -49,12 +49,18 @@ void ht_free(void *ptr)
 	assert(stats != NULL);
 
 	stats->free_count++;
-	stats->size -= header->alloc_size;
+	stats->total_size -= header->alloc_size;
 
 	free((void *)header);
 }
 
 void *ht_realloc(void *ptr, size_t size)
 {
-	return realloc(ptr, size);
+	ht_alloc_header_t *header = ptr;
+	header--;
+
+	size_t old_size = header->alloc_size;
+
+
+	void *newptr = realloc(ptr, size);
 }
