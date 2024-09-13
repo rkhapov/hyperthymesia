@@ -3,7 +3,10 @@
 
 #include <stdint.h>
 
+#include "ht_debug_info.h"
+
 typedef struct ht_bt_collect_config {
+	ht_debug_info_t *debug_info;
 } ht_bt_collect_config_t;
 
 typedef struct ht_backtrace {
