@@ -30,9 +30,14 @@ set(SOURCES
     src/ht_table.c
 )
 
-add_executable(ht_tests
-    ${HEADERS}
-    ${SOURCES}
-    src/tests/main.c
-)
-target_include_directories(ht_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+option(HT_BUILD_TESTS "Build hyperthymesia tests" OFF)
+if (HT_BUILD_TESTS)
+    add_executable(ht_tests
+        ${HEADERS}
+        ${SOURCES}
+        src/tests/main.c
+        src/tests/test_ht_malloc_ht_free.c
+        src/tests/benchmark.c
+    )
+    target_include_directories(ht_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+endif()
