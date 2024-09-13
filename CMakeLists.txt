@@ -16,11 +16,13 @@ set(HEADERS
     include/ht_bt.h
     include/ht_table.h
     include/ht_alloc_header.h
+    include/ht_alloc_stat.h
 )
 
 set(SOURCES
     src/ht_malloc.c
     src/ht_bt.c
+    src/ht_table.c
 )
 
 add_executable(ht_tests
