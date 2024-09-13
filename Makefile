@@ -14,7 +14,7 @@ clean:
 	rm -fr $(BUILD_REL_DIR)
 
 apply_fmt:
-	find ./ -maxdepth 5 -iname '*.h' -o -iname '*.c' | xargs -n 1 -t -P $(COMPILE_CONCURRENCY) $(FMT_BIN) -i
+	find ./ -maxdepth 5 -path './include/**.h' -o -path './src/**.c' | xargs -n 1 -t -P $(COMPILE_CONCURRENCY) $(FMT_BIN) -i
 
 build_dbg: clean
 	mkdir -p $(BUILD_TEST_DIR)
