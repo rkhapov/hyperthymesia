@@ -12,8 +12,21 @@ if (NOT DEFINED HT_BT_DEPTH)
 endif()
 add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
 
+set(CLANGCOMPILERSTANDART gnu11)
 set(CMAKE_C_STANDARD_REQUIRED gnu11)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wstrict-aliasing -pedantic")
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
+        set(CMAKE_BUILD_TYPE "Debug")
+endif()
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -O2 -pthread -D_GNU_SOURCE")
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -O0 -pthread -D_GNU_SOURCE")
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "ASAN")
+        set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -g -fsanitize=address,undefined -fno-sanitize-recover=all -pedantic -Wall -Wextra -Wstrict-aliasing -g -O0 -pthread -D_GNU_SOURCE")
+endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CC_FLAGS}")
 
 set(HEADERS
     include/ht_malloc.h

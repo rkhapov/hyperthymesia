@@ -1,7 +1,7 @@
 extern void test_ht_malloc_ht_free();
 extern void test_malloc_benchmark();
 
-int main(int argc, char **argv)
+int main()
 {
 	test_ht_malloc_ht_free();
 
