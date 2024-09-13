@@ -151,7 +151,7 @@ void test_malloc_benchmark()
 			}
 		}
 
-		printf("[benchmark] allocation size %d is slower on ht from %f to %f times\n",
+		printf("[benchmark] allocations of size %d is slower on ht from %f to %f times\n",
 		       alloc_size, min, max);
 	}
 }
