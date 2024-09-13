@@ -1,9 +1,24 @@
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
+#include <dlfcn.h>
+#include <link.h>
 
 #include "ht_bt.h"
 
 __thread void *stack_bottom = NULL;
+__thread void *exec_load_base = NULL;
+
+static void *get_exec_load_base()
+{
+	void *dyn = _DYNAMIC;
+	Dl_info info;
+	if (dladdr(dyn, &info) == 0) {
+		return NULL;
+	}
+
+	return info.dli_fbase;
+}
 
 static void *get_current_thread_stack_start()
 {
@@ -31,6 +46,13 @@ int ht_bt_collect(ht_backtrace_t *bt)
 		}
 	}
 
+	if (exec_load_base == NULL) {
+		exec_load_base = get_exec_load_base();
+		if (exec_load_base == NULL) {
+			return -2;
+		}
+	}
+
 	memset(bt->entries, 0, sizeof(bt->entries));
 
 	// inspired by gpdb backptrace collection
@@ -39,14 +61,15 @@ int ht_bt_collect(ht_backtrace_t *bt)
 	uintptr_t current_frame = (uintptr_t)__builtin_frame_address(0);
 	void **next_frame = (void **)current_frame;
 
-	for (bt->size = 0; bt->size < HT_BT_MAX_DEPTH; ++bt->size) {
+	for (bt->size = 0; bt->size < HT_MAX_BT_DEPTH; ++bt->size) {
 		if ((uintptr_t)*next_frame > (uintptr_t)stack_bottom ||
 		    (uintptr_t)*next_frame < (uintptr_t)next_frame) {
 			break;
 		}
 
 		uintptr_t *frame_address = (uintptr_t *)(next_frame + 1);
-		bt->entries[bt->size] = (void *)*frame_address;
+		bt->entries[bt->size] = (void *)((uintptr_t)(*frame_address) -
+						 (uintptr_t)exec_load_base);
 
 		next_frame = (void **)*next_frame;
 	}

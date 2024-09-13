@@ -8,7 +8,7 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif ()
 
 if (NOT DEFINED HT_BT_DEPTH)
-    set(HT_BT_DEPTH 3)
+    set(HT_BT_DEPTH 5)
 endif()
 add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
 
@@ -35,14 +35,12 @@ set(HEADERS
     include/ht_table.h
     include/ht_alloc_header.h
     include/ht_alloc_stat.h
-    include/ht_debug_info.h
 )
 
 set(SOURCES
     src/ht_malloc.c
     src/ht_bt.c
     src/ht_table.c
-    src/ht_debug_info.c
 )
 
 add_library(hyperthymesia ${HEADERS} ${SOURCES})
@@ -56,6 +54,7 @@ if (HT_BUILD_TESTS)
         src/tests/main.c
         src/tests/test_ht_malloc_ht_free.c
         src/tests/benchmark.c
+        src/tests/test_ht_bt_collect.c
     )
     target_include_directories(ht_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 endif()
