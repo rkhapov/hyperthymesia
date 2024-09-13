@@ -15,4 +15,6 @@ int ht_bt_collect(ht_backtrace_t *bt);
 
 uint32_t ht_bt_get_hash(const ht_backtrace_t *bt);
 
+int ht_bt_equals(const ht_backtrace_t *a, const ht_backtrace_t *b);
+
 #endif // HYPERTHYMESIA_BT_H

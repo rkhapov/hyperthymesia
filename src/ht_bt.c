@@ -126,3 +126,15 @@ uint32_t ht_bt_get_hash(const ht_backtrace_t *bt)
 	return get_mur_mur_hash(bt->entries, bt->size * sizeof(ht_bt_entry_t),
 				mur_mur_seed);
 }
+
+int ht_bt_equals(const ht_backtrace_t *a, const ht_backtrace_t *b) {
+	if (a->size != b->size) {
+		return 0;
+	}
+
+	if (memcmp(a->entries, b->entries, a->size * sizeof(ht_bt_entry_t)) == 0) {
+		return 1;
+	}
+
+	return 0;
+}
