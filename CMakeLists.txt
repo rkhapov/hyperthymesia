@@ -30,6 +30,9 @@ set(SOURCES
     src/ht_table.c
 )
 
+add_library(hyperthymesia ${HEADERS} ${SOURCES})
+target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 option(HT_BUILD_TESTS "Build hyperthymesia tests" OFF)
 if (HT_BUILD_TESTS)
     add_executable(ht_tests
