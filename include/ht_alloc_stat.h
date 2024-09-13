@@ -5,7 +5,7 @@
 
 typedef unsigned long long stat_counter_t;
 
-typedef struct {
+typedef struct ht_alloc_stat {
 	stat_counter_t alloc_count;
 	stat_counter_t free_count;
 	stat_counter_t size;

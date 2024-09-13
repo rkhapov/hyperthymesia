@@ -7,7 +7,7 @@
 
 typedef void (*defer_fn)(void *);
 
-typedef struct {
+typedef struct defer_info {
 	defer_fn function;
 	void *argument;
 } defer_info_t;

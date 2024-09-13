@@ -3,13 +3,11 @@
 
 #include <stdint.h>
 
-#define HT_MAX_BT_DEPTH 10
-
-typedef struct {
-	int max_depth;
+typedef struct ht_bt_collect_config {
 } ht_bt_collect_config_t;
 
-typedef struct {
+typedef struct ht_backtrace {
+	// HT_MAX_BT_DEPTH is defined in CMakeLists.txt
 	uintptr_t bt[HT_MAX_BT_DEPTH];
 } ht_backtrace_t;
 

@@ -1,7 +1,7 @@
 BUILD_TEST_DIR=build
 BUILD_REL_DIR=build
 HM_DIR=$(PWD)
-COMPILE_CONCURRENCY=8
+COMPILE_CONCURRENCY=16
 
 FMT_BIN:=clang-format
 CMAKE_BIN:=cmake
@@ -13,7 +13,7 @@ clean:
 	rm -fr $(BUILD_REL_DIR)
 
 apply_fmt:
-	find ./ -maxdepth 5 -iname '*.h' -o -iname '*.c' | xargs $(FMT_BIN) -i
+	find ./ -maxdepth 5 -iname '*.h' -o -iname '*.c' | xargs -n 1 -t -P $(COMPILE_CONCURRENCY) $(FMT_BIN) -i
 
 build_release: clean
 	mkdir -p $(BUILD_REL_DIR)

@@ -3,7 +3,7 @@
 
 #include "ht_bt.h"
 
-typedef struct {
+typedef struct ht_alloc_header {
 	ht_backtrace_t alloc_bt;
 } ht_alloc_header_t;
 

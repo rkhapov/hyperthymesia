@@ -7,6 +7,11 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   return()
 endif ()
 
+if (NOT DEFINED HT_BT_DEPTH)
+    set(HT_BT_DEPTH 3)
+endif()
+add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
+
 set(CMAKE_C_STANDARD_REQUIRED gnu11)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wstrict-aliasing -pedantic")
 

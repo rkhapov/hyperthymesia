@@ -5,13 +5,13 @@
 
 #include "ht_alloc_stat.h"
 
-typedef struct {
+typedef struct ht_allocation_bucket {
 	size_t used;
 	size_t capacity;
 	ht_alloc_stat_t *stats;
 } ht_allocation_bucket_t;
 
-typedef struct {
+typedef struct ht_allocation_table {
 	size_t buckets_count;
 	ht_allocation_bucket_t *buckets;
 } ht_allocation_table_t;
