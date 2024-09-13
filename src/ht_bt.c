@@ -127,12 +127,14 @@ uint32_t ht_bt_get_hash(const ht_backtrace_t *bt)
 				mur_mur_seed);
 }
 
-int ht_bt_equals(const ht_backtrace_t *a, const ht_backtrace_t *b) {
+int ht_bt_equals(const ht_backtrace_t *a, const ht_backtrace_t *b)
+{
 	if (a->size != b->size) {
 		return 0;
 	}
 
-	if (memcmp(a->entries, b->entries, a->size * sizeof(ht_bt_entry_t)) == 0) {
+	if (memcmp(a->entries, b->entries, a->size * sizeof(ht_bt_entry_t)) ==
+	    0) {
 		return 1;
 	}
 

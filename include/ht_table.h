@@ -18,6 +18,8 @@ typedef struct ht_allocation_table {
 
 int ht_thread_table_init(size_t buckets_count, size_t bucket_start_capacity);
 
+ht_alloc_stat_t *ht_table_get_allocation_stats(const ht_backtrace_t *bt);
+
 int ht_thread_table_destroy();
 
 #endif // HYPERTHYMESIA_TABLE_H
