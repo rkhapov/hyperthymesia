@@ -7,7 +7,7 @@
 
 void test_ht_realloc()
 {
-	ht_thread_table_init(49999, 30);
+	ht_table_init(49999, 30);
 
 	const int alloc_count = 100;
 	const int alloc_size = 1024;
@@ -37,5 +37,5 @@ void test_ht_realloc()
 		ht_free(ptrs[i]);
 	}
 
-	ht_thread_table_destroy();
+	ht_table_destroy();
 }

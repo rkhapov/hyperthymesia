@@ -8,18 +8,6 @@
 #include "ht_table.h"
 #include "ht_malloc.h"
 
-static void register_allocation(ht_alloc_stat_t *stats, size_t size)
-{
-	stats->total_size += size;
-	stats->alloc_count++;
-}
-
-static void register_deallocation(ht_alloc_stat_t *stats, size_t size)
-{
-	stats->total_size -= size;
-	stats->free_count++;
-}
-
 void *ht_malloc(size_t size)
 {
 	const size_t total_size = sizeof(ht_alloc_header_t) + size;
@@ -39,15 +27,7 @@ void *ht_malloc(size_t size)
 
 	header->alloc_size = size;
 
-	ht_alloc_stat_t *stats =
-		ht_table_get_allocation_stats(&header->alloc_bt);
-	if (stats == NULL) {
-		// TODO: do smth more supportable here ?
-		perror("can't get stats at malloc");
-		abort();
-	}
-
-	register_allocation(stats, size);
+	ht_table_register_allocation(&header->alloc_bt, size);
 
 	return (void *)(header + 1);
 }
@@ -58,12 +38,7 @@ void ht_free(void *ptr)
 
 	header--;
 
-	ht_alloc_stat_t *stats =
-		ht_table_get_allocation_stats(&header->alloc_bt);
-	assert(stats != NULL);
-
-	stats->free_count++;
-	stats->total_size -= header->alloc_size;
+	ht_table_register_deallocation(&header->alloc_bt, header->alloc_size);
 
 	free((void *)header);
 }
@@ -93,15 +68,7 @@ void *ht_realloc(void *ptr, size_t size)
 		return NULL;
 	}
 
-	ht_alloc_stat_t *stats =
-		ht_table_get_allocation_stats(&header->alloc_bt);
-	if (stats == NULL) {
-		// TODO: do smth more supportable here ?
-		perror("can't get stats at realloc");
-		abort();
-	}
-
-	register_deallocation(stats, header->alloc_size);
+	ht_table_register_deallocation(&header->alloc_bt, header->alloc_size);
 
 	header->alloc_size = size;
 	if (ht_bt_collect(&header->alloc_bt, 1)) {
@@ -111,19 +78,7 @@ void *ht_realloc(void *ptr, size_t size)
 		abort();
 	}
 
-	// if it is the same bt
-	// (when realloc called twice at same scenario)
-	// there is no need to traverse stat table
-	if (!ht_bt_equals(&stats->bt, &header->alloc_bt)) {
-		stats = ht_table_get_allocation_stats(&header->alloc_bt);
-		if (stats == NULL) {
-			// TODO: do smth more supportable here ?
-			perror("can't get stats at realloc");
-			abort();
-		}
-	}
-
-	register_allocation(stats, size);
+	ht_table_register_allocation(&header->alloc_bt, size);
 
 	return (void *)(header + 1);
 }

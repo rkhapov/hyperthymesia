@@ -3,6 +3,9 @@
 Hyperthymesia is a lightweight C-framework for memory allocations statistics,
 that are available from inside the application.
 
+It creates a global allocations table with interface of:
+backtrace -> allocation stats.
+
 ## How to use
 
 Hyperthymesia can be used as cmake subproject, it builds the library libthyperthymesia,
@@ -20,9 +23,9 @@ target_link_libraries(my_app hyperthymesia)
 
 And then, if you want to collect statistics of allocation for the thread,
 you must do:
-- initialize hyperthymesia in specified thread with `ht_thread_table_init`
+- initialize hyperthymesia in specified thread with `ht_table_init`
 - use `ht_malloc`, `ht_free`, `ht_realloc` functions instead of standard `malloc`, `free`, `realloc` functions
-- destroy thread table after using hyperthymesia with `ht_thread_table_destroy`
+- destroy thread table after using hyperthymesia with `ht_table_destroy`
 - consider using -fno-omit-frame-pointer to get more clear backtraces
 
 See example at https://github.com/rkhapov/hyperthymesia-usage-example

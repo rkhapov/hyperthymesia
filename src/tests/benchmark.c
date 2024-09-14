@@ -136,7 +136,7 @@ static const int alloc_sizes[] = { 1 << 3, 1 << 4,  1 << 8,
 
 void test_malloc_benchmark()
 {
-	ht_thread_table_init(49999, 30);
+	ht_table_init(49999, 30);
 
 	for (unsigned i = 0; i < sizeof(alloc_sizes) / sizeof(int); ++i) {
 		const int measurements_count = 30;
@@ -160,12 +160,12 @@ void test_malloc_benchmark()
 		       alloc_size, min, max);
 	}
 
-	ht_thread_table_destroy();
+	ht_table_destroy();
 }
 
 void test_realloc_benchmark()
 {
-	ht_thread_table_init(49999, 30);
+	ht_table_init(49999, 30);
 
 	for (unsigned i = 0; i < sizeof(alloc_sizes) / sizeof(int); ++i) {
 		const int measurements_count = 30;
@@ -190,5 +190,5 @@ void test_realloc_benchmark()
 		       alloc_size, alloc_size + growth, min, max);
 	}
 
-	ht_thread_table_destroy();
+	ht_table_destroy();
 }

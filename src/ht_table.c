@@ -1,28 +1,31 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
 
 #include "ht_table.h"
 
-__thread ht_allocation_table_t thread_table;
+ht_allocation_table_t global_allocations_table;
 
-int ht_thread_table_init(size_t buckets_count, size_t bucket_start_capacity)
+int ht_table_init(size_t buckets_count, size_t bucket_start_capacity)
 {
-	if (thread_table.buckets_count != 0) {
+	if (global_allocations_table.buckets_count != 0) {
 		return -1;
 	}
 
-	pthread_mutex_init(&thread_table.mutex, NULL);
-
-	thread_table.buckets = (ht_allocation_bucket_t *)malloc(
+	global_allocations_table.buckets = (ht_allocation_bucket_t *)malloc(
 		sizeof(ht_allocation_bucket_t) * buckets_count);
 
-	if (thread_table.buckets == NULL) {
+	if (global_allocations_table.buckets == NULL) {
 		return -1;
 	}
 
 	for (size_t i = 0; i < buckets_count; ++i) {
-		ht_allocation_bucket_t *bucket = &thread_table.buckets[i];
+		ht_allocation_bucket_t *bucket =
+			&global_allocations_table.buckets[i];
+
+		pthread_mutex_init(&global_allocations_table.buckets[i].mutex,
+				   NULL);
 
 		bucket->used = 0;
 		bucket->capacity = bucket_start_capacity;
@@ -30,11 +33,11 @@ int ht_thread_table_init(size_t buckets_count, size_t bucket_start_capacity)
 			sizeof(ht_alloc_stat_t) * bucket_start_capacity);
 
 		if (bucket->stats == NULL) {
-			ht_thread_table_destroy();
+			ht_table_destroy();
 			return -1;
 		}
 
-		++thread_table.buckets_count;
+		++global_allocations_table.buckets_count;
 	}
 
 	return 0;
@@ -87,77 +90,89 @@ static ht_alloc_stat_t *find_or_append_stats(ht_allocation_bucket_t *bucket,
 	return append_stat_for_new_bt(bucket, bt);
 }
 
-ht_alloc_stat_t *ht_table_get_allocation_stats(const ht_backtrace_t *bt)
+static ht_allocation_bucket_t *get_bucket(const ht_backtrace_t *bt)
 {
-	ht_table_lock(&thread_table);
-
-	if (thread_table.buckets_count == 0) {
-		ht_table_unlock(&thread_table);
-		return NULL;
-	}
-
 	const uint32_t bt_hash = ht_bt_get_hash(bt);
-	const size_t bucket_idx = (size_t)bt_hash % thread_table.buckets_count;
-	ht_allocation_bucket_t *bucket = &thread_table.buckets[bucket_idx];
+	const size_t bucket_idx =
+		(size_t)bt_hash % global_allocations_table.buckets_count;
+	ht_allocation_bucket_t *bucket =
+		&global_allocations_table.buckets[bucket_idx];
 
-	ht_alloc_stat_t *stat = find_or_append_stats(bucket, bt);
-
-	ht_table_unlock(&thread_table);
-
-	return stat;
+	return bucket;
 }
 
-int ht_thread_table_destroy()
+void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size)
 {
-	ht_table_lock(&thread_table);
+	ht_allocation_bucket_t *bucket = get_bucket(bt);
 
-	for (size_t i = 0; i < thread_table.buckets_count; ++i) {
-		free(thread_table.buckets[i].stats);
+	pthread_mutex_lock(&bucket->mutex);
+
+	ht_alloc_stat_t *stat = find_or_append_stats(bucket, bt);
+	if (stat == NULL) {
+		// TODO: do some more supportable here ???
+		perror("can't find or create stat for bt");
+		abort();
 	}
 
-	free(thread_table.buckets);
+	stat->alloc_count++;
+	stat->total_size += size;
 
-	thread_table.buckets = NULL;
-	thread_table.buckets_count = 0;
+	pthread_mutex_unlock(&bucket->mutex);
+}
 
-	ht_table_unlock(&thread_table);
+void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
+{
+	ht_allocation_bucket_t *bucket = get_bucket(bt);
 
-	pthread_mutex_destroy(&thread_table.mutex);
+	pthread_mutex_lock(&bucket->mutex);
+
+	ht_alloc_stat_t *stat = find_or_append_stats(bucket, bt);
+	if (stat == NULL) {
+		// TODO: do some more supportable here ???
+		perror("can't find or create stat for bt");
+		abort();
+	}
+
+	stat->free_count++;
+	stat->total_size -= size;
+
+	pthread_mutex_unlock(&bucket->mutex);
+}
+
+int ht_table_destroy()
+{
+	for (size_t i = 0; i < global_allocations_table.buckets_count; ++i) {
+		pthread_mutex_destroy(
+			&global_allocations_table.buckets[i].mutex);
+
+		free(global_allocations_table.buckets[i].stats);
+	}
+
+	free(global_allocations_table.buckets);
+
+	global_allocations_table.buckets = NULL;
+	global_allocations_table.buckets_count = 0;
 
 	return 0;
 }
 
-void ht_table_foreach_stat(ht_allocation_table_t *table, ht_alloc_stat_callback_t cb)
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
 {
-	ht_table_lock(table);
-
-	const size_t bc = thread_table.buckets_count;
-	const ht_allocation_bucket_t *buckets = thread_table.buckets;
+	const size_t bc = global_allocations_table.buckets_count;
+	ht_allocation_bucket_t *buckets = global_allocations_table.buckets;
 
 	for (size_t i = 0; i < bc; ++i) {
-		const ht_allocation_bucket_t *bucket = &buckets[i];
+		ht_allocation_bucket_t *bucket = &buckets[i];
+
+		pthread_mutex_lock(&bucket->mutex);
+
 		const ht_alloc_stat_t *stats = bucket->stats;
 		const size_t used = bucket->used;
 
 		for (size_t j = 0; j < used; ++j) {
 			cb(&stats[j]);
 		}
+
+		pthread_mutex_unlock(&bucket->mutex);
 	}
-
-	ht_table_unlock(table);
-}
-
-ht_allocation_table_t *ht_get_table_of_current_thread()
-{
-	return &thread_table;
-}
-
-void ht_table_lock(ht_allocation_table_t *table)
-{
-	pthread_mutex_lock(&table->mutex);
-}
-
-void ht_table_unlock(ht_allocation_table_t *table)
-{
-	pthread_mutex_unlock(&table->mutex);
 }

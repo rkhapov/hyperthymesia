@@ -30,7 +30,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CC_FLAGS}")
 
 set(HEADERS
     include/ht_malloc.h
-    include/ht_defer.h
     include/ht_bt.h
     include/ht_table.h
     include/ht_alloc_header.h
