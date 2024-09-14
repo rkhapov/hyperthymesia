@@ -18,6 +18,8 @@ void do_run_test(void (*fn)(), const char *name)
 
 int main()
 {
+	run_test(test_ht_bt_collect);
+
 	run_test(test_ht_malloc_ht_free);
 
 	run_test(test_ht_realloc);
@@ -25,8 +27,6 @@ int main()
 	run_test(test_malloc_benchmark);
 
 	run_test(test_realloc_benchmark);
-
-	run_test(test_ht_bt_collect);
 
 	return 0;
 }

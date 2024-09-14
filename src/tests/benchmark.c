@@ -132,7 +132,7 @@ static double test_get_ralloc_ratio_ht_to_pure(const int alloc_count,
 static uint64_t *benchmark_ptrs[benchmark_alloc_count];
 
 static const int alloc_sizes[] = { 1 << 3, 1 << 4,  1 << 8,
-				   1 << 9, 1 << 12, 1 << 16 };
+				   1 << 9, 1 << 12, 1 << 14 };
 
 void test_malloc_benchmark()
 {

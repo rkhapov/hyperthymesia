@@ -10,7 +10,7 @@ __attribute__((noinline)) void baz()
 	memset(some_vars, 'c', sizeof(some_vars));
 
 	ht_backtrace_t bt;
-	if (ht_bt_collect(&bt) != 0) {
+	if (ht_bt_collect(&bt, 0) != 0) {
 		perror("ht_bt_collect");
 		abort();
 	}

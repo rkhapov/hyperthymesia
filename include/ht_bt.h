@@ -15,7 +15,7 @@ typedef struct ht_backtrace {
 	ht_bt_entry_t entries[HT_MAX_BT_DEPTH];
 } ht_backtrace_t;
 
-int ht_bt_collect(ht_backtrace_t *bt);
+int ht_bt_collect(ht_backtrace_t *bt, int skip);
 
 uint32_t ht_bt_get_hash(const ht_backtrace_t *bt);
 

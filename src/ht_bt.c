@@ -39,7 +39,7 @@ static void *get_current_thread_stack_start()
 	return (void *)((uintptr_t)stackaddr + stacksize);
 }
 
-int ht_bt_collect(ht_backtrace_t *bt)
+int ht_bt_collect(ht_backtrace_t *bt, int skip)
 {
 	if (stack_bottom == NULL) {
 		stack_bottom = get_current_thread_stack_start();
@@ -58,20 +58,25 @@ int ht_bt_collect(ht_backtrace_t *bt)
 	memset(bt->entries, 0, sizeof(bt->entries));
 
 	// inspired by gpdb backptrace collection
-	// we do not use backtrace() because it can be slow
 
 	uintptr_t current_frame = (uintptr_t)__builtin_frame_address(0);
 	void **next_frame = (void **)current_frame;
 
-	for (bt->size = 0; bt->size < HT_MAX_BT_DEPTH; ++bt->size) {
+	for (int i = 0; i < HT_MAX_BT_DEPTH; ++i) {
 		if ((uintptr_t)*next_frame > (uintptr_t)stack_bottom ||
 		    (uintptr_t)*next_frame < (uintptr_t)next_frame) {
 			break;
 		}
 
-		uintptr_t *frame_address = (uintptr_t *)(next_frame + 1);
-		bt->entries[bt->size] = (void *)((uintptr_t)(*frame_address) -
-						 (uintptr_t)exec_load_base);
+		if (skip > 0) {
+			skip--;
+		} else {
+			uintptr_t *frame_address =
+				(uintptr_t *)(next_frame + 1);
+			bt->entries[bt->size++] =
+				(void *)((uintptr_t)(*frame_address) -
+					 (uintptr_t)exec_load_base);
+		}
 
 		next_frame = (void **)*next_frame;
 	}

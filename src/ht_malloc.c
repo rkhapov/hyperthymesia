@@ -31,7 +31,7 @@ void *ht_malloc(size_t size)
 
 	ht_alloc_header_t *header = raw;
 
-	if (ht_bt_collect(&header->alloc_bt)) {
+	if (ht_bt_collect(&header->alloc_bt, 1)) {
 		// TODO: do smth more supportable here ?
 		perror("can't get backtrace at malloc");
 		abort();
@@ -104,7 +104,7 @@ void *ht_realloc(void *ptr, size_t size)
 	register_deallocation(stats, header->alloc_size);
 
 	header->alloc_size = size;
-	if (ht_bt_collect(&header->alloc_bt)) {
+	if (ht_bt_collect(&header->alloc_bt, 1)) {
 		// extremely unlikely...
 		// TODO: do smth more supportable here ?
 		perror("can't get backtrace at realloc");
