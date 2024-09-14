@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "ht_table.h"
 
@@ -10,6 +11,8 @@ int ht_thread_table_init(size_t buckets_count, size_t bucket_start_capacity)
 	if (thread_table.buckets_count != 0) {
 		return -1;
 	}
+
+	pthread_mutex_init(&thread_table.mutex, NULL);
 
 	thread_table.buckets = (ht_allocation_bucket_t *)malloc(
 		sizeof(ht_allocation_bucket_t) * buckets_count);
@@ -86,7 +89,10 @@ static ht_alloc_stat_t *find_or_append_stats(ht_allocation_bucket_t *bucket,
 
 ht_alloc_stat_t *ht_table_get_allocation_stats(const ht_backtrace_t *bt)
 {
+	ht_table_lock(&thread_table);
+
 	if (thread_table.buckets_count == 0) {
+		ht_table_unlock(&thread_table);
 		return NULL;
 	}
 
@@ -94,11 +100,17 @@ ht_alloc_stat_t *ht_table_get_allocation_stats(const ht_backtrace_t *bt)
 	const size_t bucket_idx = (size_t)bt_hash % thread_table.buckets_count;
 	ht_allocation_bucket_t *bucket = &thread_table.buckets[bucket_idx];
 
-	return find_or_append_stats(bucket, bt);
+	ht_alloc_stat_t *stat = find_or_append_stats(bucket, bt);
+
+	ht_table_unlock(&thread_table);
+
+	return stat;
 }
 
 int ht_thread_table_destroy()
 {
+	ht_table_lock(&thread_table);
+
 	for (size_t i = 0; i < thread_table.buckets_count; ++i) {
 		free(thread_table.buckets[i].stats);
 	}
@@ -108,11 +120,17 @@ int ht_thread_table_destroy()
 	thread_table.buckets = NULL;
 	thread_table.buckets_count = 0;
 
+	ht_table_unlock(&thread_table);
+
+	pthread_mutex_destroy(&thread_table.mutex);
+
 	return 0;
 }
 
-void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
+void ht_table_foreach_stat(ht_allocation_table_t *table, ht_alloc_stat_callback_t cb)
 {
+	ht_table_lock(table);
+
 	const size_t bc = thread_table.buckets_count;
 	const ht_allocation_bucket_t *buckets = thread_table.buckets;
 
@@ -125,4 +143,21 @@ void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
 			cb(&stats[j]);
 		}
 	}
+
+	ht_table_unlock(table);
+}
+
+ht_allocation_table_t *ht_get_table_of_current_thread()
+{
+	return &thread_table;
+}
+
+void ht_table_lock(ht_allocation_table_t *table)
+{
+	pthread_mutex_lock(&table->mutex);
+}
+
+void ht_table_unlock(ht_allocation_table_t *table)
+{
+	pthread_mutex_unlock(&table->mutex);
 }
