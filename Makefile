@@ -12,6 +12,7 @@ CMAKE_BIN:=cmake
 clean:
 	rm -fr $(BUILD_TEST_DIR)
 	rm -fr $(BUILD_REL_DIR)
+	rm -fr $(BUILD_TEST_ASAN_DIR)
 
 apply_fmt:
 	find ./ -maxdepth 5 -path './include/**.h' -o -path './src/**.c' | xargs -n 1 -t -P $(COMPILE_CONCURRENCY) $(FMT_BIN) -i

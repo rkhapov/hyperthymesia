@@ -5,6 +5,10 @@
 
 typedef void *ht_bt_entry_t;
 
+#ifndef HT_MAX_BT_DEPTH
+#define HT_MAX_BT_DEPTH 5
+#endif
+
 typedef struct ht_backtrace {
 	size_t size;
 	// HT_MAX_BT_DEPTH is defined in CMakeLists.txt

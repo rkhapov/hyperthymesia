@@ -30,7 +30,7 @@ static size_t get_process_rss()
 
 void test_ht_malloc_ht_free()
 {
-	ht_thread_table_init((1 << 16), 30);
+	ht_thread_table_init(49999, 30);
 
 	const int ptrs_count = 100;
 	const size_t alloc_size = 10 * 1024 * 1024;

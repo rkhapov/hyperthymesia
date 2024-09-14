@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(hyperthymesia C)
 
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  message(FATAL_ERROR "hyperthymesia is сurrently available only under linux systems")
-  return()
+    message(FATAL_ERROR "hyperthymesia is сurrently available only under linux systems")
+    return()
 endif ()
 
 if (NOT DEFINED HT_BT_DEPTH)
@@ -19,11 +19,11 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
         set(CMAKE_BUILD_TYPE "Debug")
 endif()
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -O2 -pthread -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -O2 -pthread -D_GNU_SOURCE")
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -O0 -pthread -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -O0 -pthread -D_GNU_SOURCE")
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "ASAN")
-        set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -g -fsanitize=address,undefined -fno-sanitize-recover=all -pedantic -Wall -Wextra -Wstrict-aliasing -g -O0 -pthread -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -g -fsanitize=address,undefined -fno-sanitize-recover=all -pedantic -Wall -Wextra -Wstrict-aliasing -g -O0 -pthread -D_GNU_SOURCE")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CC_FLAGS}")
@@ -55,6 +55,7 @@ if (HT_BUILD_TESTS)
         src/tests/test_ht_malloc_ht_free.c
         src/tests/benchmark.c
         src/tests/test_ht_bt_collect.c
+        src/tests/test_ht_realloc.c
     )
     target_include_directories(ht_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 endif()

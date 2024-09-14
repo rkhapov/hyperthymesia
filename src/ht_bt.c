@@ -36,7 +36,7 @@ static void *get_current_thread_stack_start()
 
 	pthread_attr_destroy(&attr);
 
-	return (void*)((uintptr_t)stackaddr + stacksize);
+	return (void *)((uintptr_t)stackaddr + stacksize);
 }
 
 int ht_bt_collect(ht_backtrace_t *bt)
