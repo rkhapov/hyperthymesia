@@ -55,7 +55,7 @@ int ht_bt_collect(ht_backtrace_t *bt, int skip)
 		}
 	}
 
-	memset(bt->entries, 0, sizeof(bt->entries));
+	memset(bt, 0, sizeof(ht_backtrace_t));
 
 	// inspired by gpdb backptrace collection
 
