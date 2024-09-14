@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <sys/resource.h>
 
-#include "ht_defer.h"
 #include "ht_table.h"
 #include "ht_malloc.h"
 
@@ -14,7 +13,6 @@ static size_t get_process_rss()
 {
 	long rss = 0L;
 	FILE *fp = NULL;
-	ht_defer(ht_close_file, &fp);
 	if ((fp = fopen("/proc/self/statm", "r")) == NULL) {
 		perror("can't open /proc/self/statm");
 		abort();
@@ -24,6 +22,8 @@ static size_t get_process_rss()
 		perror("can't read /proc/self/statm");
 		abort();
 	}
+
+	fclose(fp);
 
 	return (size_t)rss * (size_t)sysconf(_SC_PAGESIZE);
 }
