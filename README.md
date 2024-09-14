@@ -23,5 +23,6 @@ you must do:
 - initialize hyperthymesia in specified thread with `ht_thread_table_init`
 - use `ht_malloc`, `ht_free`, `ht_realloc` functions instead of standard `malloc`, `free`, `realloc` functions
 - destroy thread table after using hyperthymesia with `ht_thread_table_destroy`
+- consider using -fno-omit-frame-pointer to get more clear backtraces
 
 See example at https://github.com/rkhapov/hyperthymesia-usage-example
