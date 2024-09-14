@@ -110,3 +110,19 @@ int ht_thread_table_destroy()
 
 	return 0;
 }
+
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
+{
+	const size_t bc = thread_table.buckets_count;
+	const ht_allocation_bucket_t *buckets = thread_table.buckets;
+
+	for (size_t i = 0; i < bc; ++i) {
+		const ht_allocation_bucket_t *bucket = &buckets[i];
+		const ht_alloc_stat_t *stats = bucket->stats;
+		const size_t used = bucket->used;
+
+		for (size_t j = 0; j < used; ++j) {
+			cb(&stats[j]);
+		}
+	}
+}

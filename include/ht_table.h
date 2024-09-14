@@ -22,4 +22,8 @@ ht_alloc_stat_t *ht_table_get_allocation_stats(const ht_backtrace_t *bt);
 
 int ht_thread_table_destroy();
 
+typedef void (*ht_alloc_stat_callback_t)(const ht_alloc_stat_t *stat);
+
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb);
+
 #endif // HYPERTHYMESIA_TABLE_H
