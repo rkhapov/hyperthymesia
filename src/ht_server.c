@@ -21,6 +21,25 @@
 static pthread_t server_thread_id;
 static pthread_attr_t server_thread_attr;
 
+static const char *human_readable_size(size_t size)
+{
+	static char buf[128];
+
+	if (size < 10 * 1024) {
+		sprintf(buf, "%zu bytes", size);
+	} else if (size < 3 * 1024 * 1024) {
+		sprintf(buf, "%zu Kb (%zu bytes)", size / 1024, size);
+	} else if (size < 1024 * 1024 * 1024) {
+		sprintf(buf, "%zu Mb (%zu Kb)", size / 1024 / 1024,
+			size / 1024);
+	} else {
+		printf(buf, "%zu Gb (%zu mb)", size / 1024 / 1024 / 1024,
+		       size / 1024 / 1024);
+	}
+
+	return buf;
+}
+
 static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 {
 	static char stat_buf[1024];
@@ -42,8 +61,9 @@ static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 		}
 	}
 
-	ptr += sprintf(ptr, "\tallocs = %llu free = %llu total_size = %llu\n\n",
-		       stat->alloc_count, stat->free_count, stat->total_size);
+	ptr += sprintf(ptr, "\tallocs = %llu free = %llu total_size = %s\n\n",
+		       stat->alloc_count, stat->free_count,
+		       human_readable_size(stat->total_size));
 
 	*ptr = 0;
 
