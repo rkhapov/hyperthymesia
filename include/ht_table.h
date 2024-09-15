@@ -20,13 +20,9 @@ typedef struct ht_allocation_table {
 
 typedef void (*ht_alloc_stat_callback_t)(const ht_alloc_stat_t *stat);
 
-int ht_table_init(size_t buckets_count, size_t bucket_start_capacity);
-
 void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size);
 
 void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size);
-
-int ht_table_destroy();
 
 void ht_table_foreach_stat(ht_alloc_stat_callback_t cb);
 

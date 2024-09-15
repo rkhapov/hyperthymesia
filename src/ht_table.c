@@ -7,12 +7,16 @@
 #include "ht_log.h"
 #include "ht_real_funcs.h"
 
-ht_allocation_table_t global_allocations_table;
+static ht_allocation_table_t global_allocations_table;
+static pthread_once_t table_init_once_control = PTHREAD_ONCE_INIT;
 
-int ht_table_init(size_t buckets_count, size_t bucket_start_capacity)
+#define ensure_table_is_initialized() \
+	((void)pthread_once(&table_init_once_control, table_init))
+
+static void table_init(size_t buckets_count, size_t bucket_start_capacity)
 {
 	if (global_allocations_table.buckets_count != 0) {
-		return -1;
+		return;
 	}
 
 	ht_malloc_func_t real_malloc = ht_get_real_malloc();
@@ -22,7 +26,7 @@ int ht_table_init(size_t buckets_count, size_t bucket_start_capacity)
 			sizeof(ht_allocation_bucket_t) * buckets_count);
 
 	if (global_allocations_table.buckets == NULL) {
-		return -1;
+		return;
 	}
 
 	for (size_t i = 0; i < buckets_count; ++i) {
@@ -38,14 +42,11 @@ int ht_table_init(size_t buckets_count, size_t bucket_start_capacity)
 			sizeof(ht_alloc_stat_t) * bucket_start_capacity);
 
 		if (bucket->stats == NULL) {
-			ht_table_destroy();
-			return -1;
+			abort();
 		}
 
 		++global_allocations_table.buckets_count;
 	}
-
-	return 0;
 }
 
 static ht_alloc_stat_t *find_stats_in_bucket(ht_allocation_bucket_t *bucket,
@@ -110,6 +111,8 @@ static ht_allocation_bucket_t *get_bucket(const ht_backtrace_t *bt)
 
 void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size)
 {
+	ensure_table_is_initialized();
+
 	ht_allocation_bucket_t *bucket = get_bucket(bt);
 
 	pthread_mutex_lock(&bucket->mutex);
@@ -129,6 +132,8 @@ void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size)
 
 void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 {
+	ensure_table_is_initialized();
+
 	ht_allocation_bucket_t *bucket = get_bucket(bt);
 
 	pthread_mutex_lock(&bucket->mutex);
@@ -146,27 +151,10 @@ void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 	pthread_mutex_unlock(&bucket->mutex);
 }
 
-int ht_table_destroy()
-{
-	ht_free_func_t real_free = ht_get_real_free();
-
-	for (size_t i = 0; i < global_allocations_table.buckets_count; ++i) {
-		pthread_mutex_destroy(
-			&global_allocations_table.buckets[i].mutex);
-
-		real_free(global_allocations_table.buckets[i].stats);
-	}
-
-	real_free(global_allocations_table.buckets);
-
-	global_allocations_table.buckets = NULL;
-	global_allocations_table.buckets_count = 0;
-
-	return 0;
-}
-
 void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
 {
+	ensure_table_is_initialized();
+
 	const size_t buf_size = 64;
 	ht_alloc_stat_t buf[buf_size];
 
