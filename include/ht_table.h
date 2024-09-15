@@ -18,12 +18,13 @@ typedef struct ht_allocation_table {
 	ht_allocation_bucket_t *buckets;
 } ht_allocation_table_t;
 
-typedef void (*ht_alloc_stat_callback_t)(const ht_alloc_stat_t *stat);
+typedef void (*ht_alloc_stat_callback_t)(const ht_alloc_stat_t *stat,
+					 void *arg);
 
 void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size);
 
 void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size);
 
-void ht_table_foreach_stat(ht_alloc_stat_callback_t cb);
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg);
 
 #endif // HYPERTHYMESIA_TABLE_H

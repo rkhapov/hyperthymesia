@@ -190,7 +190,7 @@ void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 	pthread_mutex_unlock(&bucket->mutex);
 }
 
-void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg)
 {
 	ensure_table_is_initialized();
 
@@ -232,7 +232,7 @@ void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
 			pthread_mutex_unlock(&bucket->mutex);
 
 			for (size_t i = 0; i < part_size; ++i) {
-				cb(&buf[i]);
+				cb(&buf[i], arg);
 			}
 		}
 	}

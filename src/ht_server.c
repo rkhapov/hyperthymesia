@@ -1,15 +1,55 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 
+#include <dlfcn.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 
 #include "ht_server.h"
+#include "ht_table.h"
 #include "ht_log.h"
+
+#define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len)) + 1))
 
 static pthread_t server_thread_id;
 static pthread_attr_t server_thread_attr;
+
+static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
+{
+	static char stat_buf[1024];
+	char *ptr = stat_buf;
+
+	for (size_t i = 0; i < stat->bt.size; ++i) {
+		void *bt = stat->bt.entries[i];
+
+		Dl_info info;
+		if (dladdr(bt, &info) == 0) {
+			ptr += sprintf(ptr, "%p (unknown)\n", bt);
+		} else {
+			void *calibrated = (void *)((uintptr_t)bt -
+						    (uintptr_t)info.dli_fbase);
+
+			ptr += sprintf(ptr, "addr2line -e %s %p | %s\n",
+				       info.dli_fname, calibrated,
+				       info.dli_sname);
+		}
+	}
+
+	ptr += sprintf(ptr, "\tallocs = %llu free = %llu total_size = %llu\n\n",
+		       stat->alloc_count, stat->free_count, stat->total_size);
+
+	*ptr = 0;
+
+	int *clientfd = arg;
+	sock_write_no_warn(*clientfd, stat_buf, strlen(stat_buf));
+}
 
 static void *server_routine(void *arg)
 {
@@ -41,7 +81,8 @@ static void *server_routine(void *arg)
 			abort();
 		}
 
-		write(clientfd, "hello!", 6);
+		ht_table_foreach_stat(send_alloc_stat, &clientfd);
+
 		close(clientfd);
 	}
 }
