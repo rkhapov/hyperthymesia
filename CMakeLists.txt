@@ -36,6 +36,7 @@ set(HEADERS
     include/ht_alloc_stat.h
     include/ht_real_funcs.h
     include/ht_log.h
+    include/ht_server.h
 )
 
 set(SOURCES
@@ -44,11 +45,14 @@ set(SOURCES
     src/ht_table.c
     src/ht_real_funcs.c
     src/ht_log.c
+    src/ht_server.c
 )
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})
 target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(benchmark tests/benchmark.c)
+
+add_executable(test_leak tests/test_leak.c)
 
 configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)

@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #include "ht_table.h"
+#include "ht_server.h"
 #include "ht_log.h"
 #include "ht_real_funcs.h"
 
@@ -38,6 +39,8 @@ static void table_init()
 		read_variable(bucket_init_len_var_name, 32);
 
 	ht_malloc_func_t real_malloc = ht_get_real_malloc();
+
+	ht_start_server("/tmp/ht.sock");
 
 	global_allocations_table.buckets =
 		(ht_allocation_bucket_t *)real_malloc(
