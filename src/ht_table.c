@@ -10,13 +10,43 @@
 static ht_allocation_table_t global_allocations_table;
 static pthread_once_t table_init_once_control = PTHREAD_ONCE_INIT;
 
+const char *buckets_count_var_name = "HT_BUCKETS";
+const char *bucket_init_len_var_name = "HT_BUCKET_LEN";
+
 #define ensure_table_is_initialized() \
 	((void)pthread_once(&table_init_once_control, table_init))
 
+static size_t read_variable(const char *name, size_t default_value)
+{
+	char *sval = getenv(name);
+	if (sval == NULL) {
+		return default_value;
+	}
+
+	long long v = atoll(sval);
+	if (v > 0) {
+		return (size_t)v;
+	}
+
+	return default_value;
+}
+
+static void log_var_value(const char *name, size_t value)
+{
+	char buf[128];
+	sprintf(buf, "%s = %zu", name, value);
+
+	ht_log_stderr(buf);
+}
+
 static void table_init()
 {
-	size_t buckets_count = 49999;
-	size_t bucket_start_capacity = 32;
+	size_t buckets_count = read_variable(buckets_count_var_name, 47351);
+	log_var_value(buckets_count_var_name, buckets_count);
+
+	size_t bucket_start_capacity =
+		read_variable(bucket_init_len_var_name, 32);
+	log_var_value(bucket_init_len_var_name, bucket_start_capacity);
 
 	ht_malloc_func_t real_malloc = ht_get_real_malloc();
 
