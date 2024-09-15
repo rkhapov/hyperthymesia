@@ -13,11 +13,10 @@ static pthread_once_t table_init_once_control = PTHREAD_ONCE_INIT;
 #define ensure_table_is_initialized() \
 	((void)pthread_once(&table_init_once_control, table_init))
 
-static void table_init(size_t buckets_count, size_t bucket_start_capacity)
+static void table_init()
 {
-	if (global_allocations_table.buckets_count != 0) {
-		return;
-	}
+	size_t buckets_count = 49999;
+	size_t bucket_start_capacity = 32;
 
 	ht_malloc_func_t real_malloc = ht_get_real_malloc();
 
