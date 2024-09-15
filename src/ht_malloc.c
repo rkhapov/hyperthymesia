@@ -2,17 +2,20 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <malloc.h>
 
 #include "ht_alloc_header.h"
 #include "ht_bt.h"
 #include "ht_table.h"
+#include "ht_real_funcs.h"
 #include "ht_malloc.h"
 
-void *ht_malloc(size_t size)
+void *malloc(size_t size)
 {
-	const size_t total_size = sizeof(ht_alloc_header_t) + size;
+	ht_malloc_func_t real_malloc = ht_get_real_malloc();
 
-	void *raw = malloc(total_size);
+	const size_t total_size = sizeof(ht_alloc_header_t) + size;
+	void *raw = real_malloc(total_size);
 	if (raw == NULL) {
 		return NULL;
 	}
@@ -32,22 +35,23 @@ void *ht_malloc(size_t size)
 	return (void *)(header + 1);
 }
 
-void ht_free(void *ptr)
+void free(void *ptr)
 {
-	ht_alloc_header_t *header = ptr;
+	ht_free_func_t real_free = ht_get_real_free();
 
+	ht_alloc_header_t *header = ptr;
 	header--;
 
 	ht_table_register_deallocation(&header->alloc_bt, header->alloc_size);
 
-	free((void *)header);
+	real_free((void *)header);
 }
 
-void *ht_realloc(void *ptr, size_t size)
+void *realloc(void *ptr, size_t size)
 {
 	// realloc-compatibility
 	if (ptr == NULL) {
-		return ht_malloc(size);
+		return malloc(size);
 	}
 
 	/*
@@ -60,10 +64,12 @@ void *ht_realloc(void *ptr, size_t size)
 	 * some allocated memory, with wrong allocation backtrace.
 	*/
 
+	ht_realloc_func_t real_realloc = ht_get_real_realloc();
+
 	ht_alloc_header_t *header = ptr;
 	header--;
 
-	header = realloc(header, sizeof(ht_alloc_header_t) + size);
+	header = real_realloc(header, sizeof(ht_alloc_header_t) + size);
 	if (header == NULL) {
 		return NULL;
 	}

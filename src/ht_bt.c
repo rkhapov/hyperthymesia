@@ -1,59 +1,61 @@
 #include <stdlib.h>
 #include <string.h>
+
 #include <pthread.h>
-#include <dlfcn.h>
-#include <link.h>
+// #include <dlfcn.h>
+// #include <link.h>
 
 #include "ht_bt.h"
 
 __thread void *stack_bottom = NULL;
-__thread void *exec_load_base = NULL;
+// __thread void *exec_load_base = NULL;
 
-static void *get_exec_load_base()
-{
-	void *dyn = _DYNAMIC;
-	Dl_info info;
-	if (dladdr(dyn, &info) == 0) {
-		return NULL;
-	}
+// static void *get_exec_load_base()
+// {
+// 	void *dyn = _DYNAMIC;
+// 	Dl_info info;
+// 	if (dladdr(dyn, &info) == 0) {
+// 		return NULL;
+// 	}
 
-	return info.dli_fbase;
-}
+// 	return info.dli_fbase;
+// }
 
-static void *get_current_thread_stack_start()
-{
-	pthread_attr_t attr;
-	void *stackaddr;
-	size_t stacksize;
+// static void *get_current_thread_stack_start()
+// {
+// 	pthread_attr_t attr;
+// 	void *stackaddr;
+// 	size_t stacksize;
 
-	if (pthread_getattr_np(pthread_self(), &attr)) {
-		return NULL;
-	}
+// 	if (pthread_getattr_np(pthread_self(), &attr)) {
+// 		return NULL;
+// 	}
 
-	if (pthread_attr_getstack(&attr, &stackaddr, &stacksize)) {
-		return NULL;
-	}
+// 	if (pthread_attr_getstack(&attr, &stackaddr, &stacksize)) {
+// 		return NULL;
+// 	}
 
-	pthread_attr_destroy(&attr);
+// 	pthread_attr_destroy(&attr);
 
-	return (void *)((uintptr_t)stackaddr + stacksize);
-}
+// 	return (void *)((uintptr_t)stackaddr + stacksize);
+// }
 
 int ht_bt_collect(ht_backtrace_t *bt, int skip)
 {
-	if (stack_bottom == NULL) {
-		stack_bottom = get_current_thread_stack_start();
-		if (stack_bottom == NULL) {
-			return -1;
-		}
-	}
+	// bt->size = backtrace((void**) &bt->entries, HT_MAX_BT_DEPTH);
+	// if (stack_bottom == NULL) {
+	// 	stack_bottom = get_current_thread_stack_start();
+	// 	if (stack_bottom == NULL) {
+	// 		return -1;
+	// 	}
+	// }
 
-	if (exec_load_base == NULL) {
-		exec_load_base = get_exec_load_base();
-		if (exec_load_base == NULL) {
-			return -2;
-		}
-	}
+	// if (exec_load_base == NULL) {
+	// 	exec_load_base = get_exec_load_base();
+	// 	if (exec_load_base == NULL) {
+	// 		return -2;
+	// 	}
+	// }
 
 	memset(bt, 0, sizeof(ht_backtrace_t));
 
@@ -63,7 +65,7 @@ int ht_bt_collect(ht_backtrace_t *bt, int skip)
 	void **next_frame = (void **)current_frame;
 
 	for (int i = 0; i < HT_MAX_BT_DEPTH; ++i) {
-		if ((uintptr_t)*next_frame > (uintptr_t)stack_bottom ||
+		if (/*(uintptr_t)*next_frame > (uintptr_t)stack_bottom ||*/ // really dangerous to not check if we gone out the stack
 		    (uintptr_t)*next_frame < (uintptr_t)next_frame) {
 			break;
 		}
@@ -73,9 +75,7 @@ int ht_bt_collect(ht_backtrace_t *bt, int skip)
 		} else {
 			uintptr_t *frame_address =
 				(uintptr_t *)(next_frame + 1);
-			bt->entries[bt->size++] =
-				(void *)((uintptr_t)(*frame_address) -
-					 (uintptr_t)exec_load_base);
+			bt->entries[bt->size++] = (void *)*frame_address;
 		}
 
 		next_frame = (void **)*next_frame;
@@ -139,14 +139,7 @@ uint32_t ht_bt_get_hash(const ht_backtrace_t *bt)
 
 int ht_bt_equals(const ht_backtrace_t *a, const ht_backtrace_t *b)
 {
-	if (a->size != b->size) {
-		return 0;
-	}
-
-	if (memcmp(a->entries, b->entries, a->size * sizeof(ht_bt_entry_t)) ==
-	    0) {
-		return 1;
-	}
-
-	return 0;
+	return a->size == b->size &&
+	       memcmp(a->entries, b->entries,
+		      a->size * sizeof(ht_bt_entry_t)) == 0;
 }

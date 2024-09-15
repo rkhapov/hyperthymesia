@@ -34,27 +34,19 @@ set(HEADERS
     include/ht_table.h
     include/ht_alloc_header.h
     include/ht_alloc_stat.h
+    include/ht_real_funcs.h
 )
 
 set(SOURCES
     src/ht_malloc.c
     src/ht_bt.c
     src/ht_table.c
+    src/ht_real_funcs.c
 )
 
-add_library(hyperthymesia ${HEADERS} ${SOURCES})
+add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})
 target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-option(HT_BUILD_TESTS "Build hyperthymesia tests" OFF)
-if (HT_BUILD_TESTS)
-    add_executable(ht_tests
-        ${HEADERS}
-        ${SOURCES}
-        src/tests/main.c
-        src/tests/test_ht_malloc_ht_free.c
-        src/tests/benchmark.c
-        src/tests/test_ht_bt_collect.c
-        src/tests/test_ht_realloc.c
-    )
-    target_include_directories(ht_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-endif()
+add_executable(benchmark tests/benchmark.c)
+
+configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)

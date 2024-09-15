@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #include "ht_table.h"
+#include "ht_real_funcs.h"
 
 ht_allocation_table_t global_allocations_table;
 
@@ -13,8 +14,11 @@ int ht_table_init(size_t buckets_count, size_t bucket_start_capacity)
 		return -1;
 	}
 
-	global_allocations_table.buckets = (ht_allocation_bucket_t *)malloc(
-		sizeof(ht_allocation_bucket_t) * buckets_count);
+	ht_malloc_func_t real_malloc = ht_get_real_malloc();
+
+	global_allocations_table.buckets =
+		(ht_allocation_bucket_t *)real_malloc(
+			sizeof(ht_allocation_bucket_t) * buckets_count);
 
 	if (global_allocations_table.buckets == NULL) {
 		return -1;
@@ -29,7 +33,7 @@ int ht_table_init(size_t buckets_count, size_t bucket_start_capacity)
 
 		bucket->used = 0;
 		bucket->capacity = bucket_start_capacity;
-		bucket->stats = (ht_alloc_stat_t *)malloc(
+		bucket->stats = (ht_alloc_stat_t *)real_malloc(
 			sizeof(ht_alloc_stat_t) * bucket_start_capacity);
 
 		if (bucket->stats == NULL) {
@@ -61,9 +65,11 @@ static ht_alloc_stat_t *find_stats_in_bucket(ht_allocation_bucket_t *bucket,
 static ht_alloc_stat_t *append_stat_for_new_bt(ht_allocation_bucket_t *bucket,
 					       const ht_backtrace_t *bt)
 {
+	ht_realloc_func_t real_realloc = ht_get_real_realloc();
+
 	if (bucket->used >= bucket->capacity) {
 		bucket->capacity *= 2;
-		bucket->stats = (ht_alloc_stat_t *)realloc(
+		bucket->stats = (ht_alloc_stat_t *)real_realloc(
 			bucket->stats,
 			bucket->capacity * sizeof(ht_alloc_stat_t));
 		if (bucket->stats == NULL) {
@@ -141,14 +147,16 @@ void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 
 int ht_table_destroy()
 {
+	ht_free_func_t real_free = ht_get_real_free();
+
 	for (size_t i = 0; i < global_allocations_table.buckets_count; ++i) {
 		pthread_mutex_destroy(
 			&global_allocations_table.buckets[i].mutex);
 
-		free(global_allocations_table.buckets[i].stats);
+		real_free(global_allocations_table.buckets[i].stats);
 	}
 
-	free(global_allocations_table.buckets);
+	real_free(global_allocations_table.buckets);
 
 	global_allocations_table.buckets = NULL;
 	global_allocations_table.buckets_count = 0;

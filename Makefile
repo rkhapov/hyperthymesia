@@ -25,14 +25,6 @@ build_release: clean
 	mkdir -p $(BUILD_REL_DIR)
 	cd $(BUILD_REL_DIR) && $(CMAKE_BIN) -DCMAKE_BUILD_TYPE=Release $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
 
-build_tests_dbg: clean
-	mkdir -p $(BUILD_TEST_DIR)
-	cd $(BUILD_TEST_DIR) && $(CMAKE_BIN) -DHT_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
-
-build_tests_release: clean
-	mkdir -p $(BUILD_REL_DIR)
-	cd $(BUILD_REL_DIR) && $(CMAKE_BIN) -DHT_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
-
-build_tests_asan: clean
+build_asan: clean
 	mkdir -p $(BUILD_TEST_ASAN_DIR)
-	cd $(BUILD_TEST_ASAN_DIR) && $(CMAKE_BIN) -DHT_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=ASAN $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
+	cd $(BUILD_TEST_ASAN_DIR) && $(CMAKE_BIN) -DCMAKE_BUILD_TYPE=ASAN $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
