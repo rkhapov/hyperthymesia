@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #include "ht_table.h"
+#include "ht_log.h"
 #include "ht_real_funcs.h"
 
 ht_allocation_table_t global_allocations_table;
@@ -116,7 +117,7 @@ void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size)
 	ht_alloc_stat_t *stat = find_or_append_stats(bucket, bt);
 	if (stat == NULL) {
 		// TODO: do some more supportable here ???
-		perror("can't find or create stat for bt");
+		ht_log_stderr("can't find or create stat for bt");
 		abort();
 	}
 
@@ -135,7 +136,7 @@ void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 	ht_alloc_stat_t *stat = find_or_append_stats(bucket, bt);
 	if (stat == NULL) {
 		// TODO: do some more supportable here ???
-		perror("can't find or create stat for bt");
+		ht_log_stderr("can't find or create stat for bt");
 		abort();
 	}
 
@@ -193,7 +194,7 @@ void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
 
 			pthread_mutex_lock(&bucket->mutex);
 
-			volatile ht_alloc_stat_t *stats = bucket->stats;
+			ht_alloc_stat_t *stats = bucket->stats;
 
 			size_t part_size = end - begin;
 			memcpy(buf, stats + begin,

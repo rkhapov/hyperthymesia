@@ -35,6 +35,7 @@ set(HEADERS
     include/ht_alloc_header.h
     include/ht_alloc_stat.h
     include/ht_real_funcs.h
+    include/ht_log.h
 )
 
 set(SOURCES
@@ -42,6 +43,7 @@ set(SOURCES
     src/ht_bt.c
     src/ht_table.c
     src/ht_real_funcs.c
+    src/ht_log.c
 )
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})

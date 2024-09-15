@@ -8,6 +8,7 @@
 #include "ht_bt.h"
 #include "ht_table.h"
 #include "ht_real_funcs.h"
+#include "ht_log.h"
 #include "ht_malloc.h"
 
 void *malloc(size_t size)
@@ -24,7 +25,7 @@ void *malloc(size_t size)
 
 	if (ht_bt_collect(&header->alloc_bt, 1)) {
 		// TODO: do smth more supportable here ?
-		perror("can't get backtrace at malloc");
+		ht_log_stderr("can't get backtrace at malloc");
 		abort();
 	}
 
@@ -80,7 +81,7 @@ void *realloc(void *ptr, size_t size)
 	if (ht_bt_collect(&header->alloc_bt, 1)) {
 		// extremely unlikely...
 		// TODO: do smth more supportable here ?
-		perror("can't get backtrace at realloc");
+		ht_log_stderr("can't get backtrace at realloc");
 		abort();
 	}
 
