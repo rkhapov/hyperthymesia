@@ -21,6 +21,7 @@ NO_INLINE void *t1_func1()
 void *thread1_routine(UNUSED void *arg)
 {
 	int leaked = 0;
+	int prev_leaked = 0;
 	while (1) {
 		void *ptr = t1_func1();
 		if ((rand() % 100) > 40) {
@@ -29,7 +30,10 @@ void *thread1_routine(UNUSED void *arg)
 			leaked += 100;
 		}
 
-		printf("[t1] leaked %d\n", leaked);
+		if (leaked != prev_leaked) {
+			printf("[t1] leaked %d\n", leaked);
+			prev_leaked = leaked;
+		}
 
 		sleep(1);
 	}
@@ -49,6 +53,8 @@ void *thread2_routine(UNUSED void *arg)
 int main()
 {
 	srand(time(NULL));
+
+	printf("my pid is %d\n", getpid());
 
 	pthread_t thread1;
 	pthread_t thread2;
