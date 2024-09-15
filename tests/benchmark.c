@@ -23,41 +23,85 @@ static unsigned long long get_time_ns()
 	return 1000000000ULL * ts.tv_sec + ts.tv_nsec;
 }
 
-static void run_malloc_test() {
-    for (size_t i = 0; i < sizeof(alloc_sizes) / sizeof(int); ++i) {
-        const int alloc_size = alloc_sizes[i];
+static void run_malloc_test()
+{
+	for (size_t i = 0; i < sizeof(alloc_sizes) / sizeof(int); ++i) {
+		const int alloc_size = alloc_sizes[i];
 
-        unsigned long long start_time = get_time_ns();
-        for (int i = 0; i < benchmark_alloc_count; ++i) {
-            benchmark_ptrs[i] = malloc(alloc_size);
-            if (benchmark_ptrs[i] == NULL) {
-                abort();
-            }
-        }
-        unsigned long long total_time = get_time_ns() - start_time;
+		unsigned long long start_time = get_time_ns();
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			benchmark_ptrs[i] = malloc(alloc_size);
+			if (benchmark_ptrs[i] == NULL) {
+				abort();
+			}
+		}
+		unsigned long long total_time = get_time_ns() - start_time;
 
-        for (int i = 0; i < benchmark_alloc_count; ++i) {
-            free(benchmark_ptrs[i]);
-        }
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			memset(benchmark_ptrs[i], 'a', alloc_size);
+		}
 
-        printf("%d %llu\n", alloc_size, total_time);
-    }
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			free(benchmark_ptrs[i]);
+		}
+
+		printf("%d %llu\n", alloc_size, total_time);
+	}
 }
 
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        printf("expected argument: function name (malloc or realloc) to test\n");
-        return 1;
-    }
+static void run_realloc_test()
+{
+	for (size_t i = 0; i < sizeof(alloc_sizes) / sizeof(int); ++i) {
+		const int alloc_size = alloc_sizes[i];
 
-    if (strcmp(argv[1], "malloc") == 0) {
-        run_malloc_test();
-    } else if (strcmp(argv[1], "realloc") == 0) {
-        printf("not impleented\n");
-    } else {
-        printf("unknown mode %s\n", argv[1]);
-        return 1;
-    }
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			benchmark_ptrs[i] = malloc(alloc_size);
+			if (benchmark_ptrs[i] == NULL) {
+				abort();
+			}
 
-    return 0;
+			memset(benchmark_ptrs[i], 'a', alloc_size);
+		}
+
+		int new_size = (int)((double)alloc_size * 1.5);
+
+		unsigned long long start_time = get_time_ns();
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			benchmark_ptrs[i] =
+				realloc(benchmark_ptrs[i], new_size);
+			if (benchmark_ptrs[i] == NULL) {
+				abort();
+			}
+		}
+		unsigned long long total_time = get_time_ns() - start_time;
+
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			memset(benchmark_ptrs[i], 'a', new_size);
+		}
+
+		for (int i = 0; i < benchmark_alloc_count; ++i) {
+			free(benchmark_ptrs[i]);
+		}
+
+		printf("%d %llu\n", alloc_size, total_time);
+	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc < 2) {
+		printf("expected argument: function name (malloc or realloc) to test\n");
+		return 1;
+	}
+
+	if (strcmp(argv[1], "malloc") == 0) {
+		run_malloc_test();
+	} else if (strcmp(argv[1], "realloc") == 0) {
+		run_realloc_test();
+	} else {
+		printf("unknown mode %s\n", argv[1]);
+		return 1;
+	}
+
+	return 0;
 }

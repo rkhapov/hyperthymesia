@@ -31,22 +31,11 @@ static size_t read_variable(const char *name, size_t default_value)
 	return default_value;
 }
 
-static void log_var_value(const char *name, size_t value)
-{
-	char buf[128];
-	sprintf(buf, "%s = %zu", name, value);
-
-	ht_log_stderr(buf);
-}
-
 static void table_init()
 {
 	size_t buckets_count = read_variable(buckets_count_var_name, 47351);
-	log_var_value(buckets_count_var_name, buckets_count);
-
 	size_t bucket_start_capacity =
 		read_variable(bucket_init_len_var_name, 32);
-	log_var_value(bucket_init_len_var_name, bucket_start_capacity);
 
 	ht_malloc_func_t real_malloc = ht_get_real_malloc();
 

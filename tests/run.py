@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 import subprocess
+import itertools
 import os
 
-RUN_COUNT = 30
+RUN_COUNT = 5
 
 
 def collect_test(mode, is_hooked):
@@ -35,8 +38,30 @@ def main():
         h = hooked[k]
         h.sort()
 
+        m1 = min(map(lambda x: x[0] / x[1], itertools.product(h, p)))
+        m2 = max(map(lambda x: x[0] / x[1], itertools.product(h, p)))
+
         print('allocation for size {} is slowed from {:.3f} to {:.3f} times'.format(
-            k, h[1] / p[1], h[-2] / p[-2]))
+            k, m1, m2))
+
+    pure = collect_test('realloc', False)
+    hooked = collect_test('realloc', True)
+
+    for k in pure:
+        p = pure[k]
+        p.sort()
+
+        h = hooked[k]
+        h.sort()
+
+        p = p[1:-1]
+        h = h[1:-1]
+
+        m1 = min(map(lambda x: x[0] / x[1], itertools.product(h, p)))
+        m2 = max(map(lambda x: x[0] / x[1], itertools.product(h, p)))
+
+        print('reallocation for size {} is slowed from {:.4f} to {:.4f} times'.format(
+            k, m1, m2))
 
 
 if __name__ == '__main__':
