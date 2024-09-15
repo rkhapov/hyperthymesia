@@ -166,21 +166,46 @@ int ht_table_destroy()
 
 void ht_table_foreach_stat(ht_alloc_stat_callback_t cb)
 {
+	const size_t buf_size = 64;
+	ht_alloc_stat_t buf[buf_size];
+
 	const size_t bc = global_allocations_table.buckets_count;
 	ht_allocation_bucket_t *buckets = global_allocations_table.buckets;
 
 	for (size_t i = 0; i < bc; ++i) {
 		ht_allocation_bucket_t *bucket = &buckets[i];
 
-		pthread_mutex_lock(&bucket->mutex);
+		// here we must read to buf by some portions
+		// because we dont know how long cb execution is
 
-		const ht_alloc_stat_t *stats = bucket->stats;
-		const size_t used = bucket->used;
+		// bucket->used only increases
+		// so there is no point in reading it with capturing the mutex
+		// the worst thing that can happen - not reading some
+		// last allocations
+		size_t used = bucket->used;
 
-		for (size_t j = 0; j < used; ++j) {
-			cb(&stats[j]);
+		size_t begin = 0;
+		while (begin < used) {
+			size_t end = begin + buf_size;
+			if (end > used) {
+				end = used;
+			}
+
+			pthread_mutex_lock(&bucket->mutex);
+
+			volatile ht_alloc_stat_t *stats = bucket->stats;
+
+			size_t part_size = end - begin;
+			memcpy(buf, stats + begin,
+			       part_size * sizeof(ht_alloc_stat_t));
+
+			begin = end;
+
+			pthread_mutex_unlock(&bucket->mutex);
+
+			for (size_t i = 0; i < part_size; ++i) {
+				cb(&buf[i]);
+			}
 		}
-
-		pthread_mutex_unlock(&bucket->mutex);
 	}
 }
