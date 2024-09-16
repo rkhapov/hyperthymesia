@@ -1,7 +1,6 @@
 # Hyperthymesia
 
-Hyperthymesia is a lightweight C-framework for memory allocations statistics,
-that are available from inside the application.
+Hyperthymesia is a lightweight C-framework for memory allocations statistics.
 
 It allows to preload `libhyperthymesia` library, which hooks
 malloc, realloc, and free, and creates table `backtrace -> allocation stats`,
