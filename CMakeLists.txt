@@ -50,7 +50,6 @@ set(SOURCES
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})
 target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(hyperthymesia unwind)
 
 add_executable(benchmark tests/benchmark.c)
 

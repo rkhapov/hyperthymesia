@@ -3,38 +3,18 @@
 #include <execinfo.h>
 #include <pthread.h>
 
-#define UNW_LOCAL_ONLY
-#include <libunwind.h>
-
 #include "ht_bt.h"
-
-__thread int uw_context_initialized = 0;
-__thread unw_context_t context;
-__thread unw_cursor_t cursor;
 
 int ht_bt_collect(ht_backtrace_t *bt, int skip)
 {
 	memset(bt, 0, sizeof(ht_backtrace_t));
 
-	if (!uw_context_initialized) {
-		unw_getcontext(&context);
-		unw_init_local(&cursor, &context);
-		uw_context_initialized = 1;
-	}
-
-	while (unw_step(&cursor) > 0 && bt->size < HT_MAX_BT_DEPTH) {
-		unw_word_t pc;
-		unw_get_reg(&cursor, UNW_REG_IP, &pc);
-		if (pc == 0) {
-			break;
-		}
-
-		if (skip) {
-			--skip;
-		} else {
-			bt->entries[bt->size++] = (void *)pc;
-		}
-	}
+	void *buff[HT_MAX_BT_DEPTH + 2];
+	int read = backtrace((void **)&buff, HT_MAX_BT_DEPTH + 2);
+	bt->size = ((size_t)read - skip) > HT_MAX_BT_DEPTH ?
+			   HT_MAX_BT_DEPTH :
+			   ((size_t)read - skip);
+	memcpy(bt->entries, buff + skip, bt->size * sizeof(void *));
 
 	// inspired by gpdb backptrace collection
 

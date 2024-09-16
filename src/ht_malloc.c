@@ -34,7 +34,7 @@ void *malloc(size_t size)
 	header->managed = malloc_depth == 1;
 
 	if (header->managed) {
-		if (ht_bt_collect(&header->alloc_bt, 1)) {
+		if (ht_bt_collect(&header->alloc_bt, 2)) {
 			// TODO: do smth more supportable here ?
 			ht_log_stderr("can't get backtrace at malloc");
 			abort();
@@ -110,7 +110,7 @@ void *realloc(void *ptr, size_t size)
 					       header->alloc_size);
 
 		header->alloc_size = size;
-		if (ht_bt_collect(&header->alloc_bt, 1)) {
+		if (ht_bt_collect(&header->alloc_bt, 2)) {
 			// extremely unlikely...
 			// TODO: do smth more supportable here ?
 			ht_log_stderr("can't get backtrace at realloc");
