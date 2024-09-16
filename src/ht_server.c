@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
+#include <sched.h>
 
 #include <dlfcn.h>
 #include <unistd.h>
@@ -71,7 +71,7 @@ static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 	sock_write_no_warn(*clientfd, stat_buf, strlen(stat_buf));
 }
 
-static void *server_routine(void *arg)
+static int server_routine(void *arg)
 {
 	const char *path = (const char *)arg;
 
@@ -105,20 +105,19 @@ static void *server_routine(void *arg)
 
 		close(clientfd);
 	}
+
+	return 0;
 }
 
 void ht_start_server(const char *socket_path)
 {
-	if (pthread_attr_init(&server_thread_attr)) {
-		ht_log_perror("pthread_attr_init");
-		abort();
-	}
+	static char server_stack[16384];
 
-	if (pthread_create(&server_thread_id, &server_thread_attr,
-			   server_routine, (void *)socket_path)) {
-		ht_log_perror("pthread_create");
-		abort();
+	int clonerc =
+		clone(server_routine, server_stack + sizeof(server_stack),
+		      CLONE_THREAD | CLONE_FILES | CLONE_VM | CLONE_SIGHAND,
+		      (void *)socket_path);
+	if (clonerc == -1) {
+		ht_log_perror("clone");
 	}
-
-	pthread_detach(server_thread_id);
 }

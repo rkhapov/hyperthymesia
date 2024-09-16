@@ -22,7 +22,8 @@ const char *server_socket_path_var_name = "HT_SOCKET";
 #define ensure_table_is_initialized() \
 	((void)pthread_once(&table_init_once_control, table_init))
 
-#define ensure_server_started() ((void)pthread_once(&server_started_once_control, server_start))
+#define ensure_server_started() \
+	((void)pthread_once(&server_started_once_control, server_start))
 
 static size_t read_variable(const char *name, size_t default_value)
 {
