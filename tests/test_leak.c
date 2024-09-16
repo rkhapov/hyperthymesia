@@ -41,9 +41,48 @@ void *thread1_routine(UNUSED void *arg)
 	return NULL;
 }
 
+NO_INLINE void *t2_realloc_func2(void *ptr)
+{
+	return realloc(ptr, 200);
+}
+
+NO_INLINE void *t2_realloc_func1(void *ptr)
+{
+	return t2_realloc_func2(ptr);
+}
+
+NO_INLINE void *t2_func2()
+{
+	return malloc(100);
+}
+
+NO_INLINE void *t2_func1()
+{
+	return t2_func2();
+}
+
 void *thread2_routine(UNUSED void *arg)
 {
+	int leaked = 0;
+	int prev_leaked = 0;
 	while (1) {
+		void *ptr = t2_func1();
+		if ((rand() & 1) == 1) {
+			free(ptr);
+		} else {
+			ptr = t2_realloc_func1(ptr);
+			if ((rand() & 1) == 1) {
+				free(ptr);
+			} else {
+				leaked += 200;
+			}
+		}
+
+		if (leaked != prev_leaked) {
+			printf("[t2] leaked %d\n", leaked);
+			prev_leaked = leaked;
+		}
+
 		sleep(1);
 	}
 
