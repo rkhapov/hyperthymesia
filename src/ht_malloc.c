@@ -36,8 +36,22 @@ void *malloc(size_t size)
 	return (void *)(header + 1);
 }
 
+void *calloc(size_t nmemb, size_t size)
+{
+	void *ptr = malloc(nmemb * size);
+	if (ptr != NULL) {
+		memset(ptr, 0, nmemb * size);
+	}
+
+	return ptr;
+}
+
 void free(void *ptr)
 {
+	if (ptr == NULL) {
+		return;
+	}
+
 	ht_free_func_t real_free = ht_get_real_free();
 
 	ht_alloc_header_t *header = ptr;
@@ -88,4 +102,9 @@ void *realloc(void *ptr, size_t size)
 	ht_table_register_allocation(&header->alloc_bt, size);
 
 	return (void *)(header + 1);
+}
+
+void *reallocarray(void *ptr, size_t nmemb, size_t size)
+{
+	return realloc(ptr, nmemb * size);
 }

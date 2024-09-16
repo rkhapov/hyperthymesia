@@ -13,12 +13,16 @@
 static ht_allocation_table_t global_allocations_table;
 static pthread_once_t table_init_once_control = PTHREAD_ONCE_INIT;
 
+static pthread_once_t server_started_once_control = PTHREAD_ONCE_INIT;
+
 const char *buckets_count_var_name = "HT_BUCKETS";
 const char *bucket_init_len_var_name = "HT_BUCKET_LEN";
 const char *server_socket_path_var_name = "HT_SOCKET";
 
 #define ensure_table_is_initialized() \
 	((void)pthread_once(&table_init_once_control, table_init))
+
+#define ensure_server_started() ((void)pthread_once(&server_started_once_control, server_start))
 
 static size_t read_variable(const char *name, size_t default_value)
 {
@@ -84,7 +88,10 @@ static void table_init()
 
 		++global_allocations_table.buckets_count;
 	}
+}
 
+static void server_start()
+{
 	ht_start_server(read_socket_path());
 }
 
@@ -151,6 +158,7 @@ static ht_allocation_bucket_t *get_bucket(const ht_backtrace_t *bt)
 void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size)
 {
 	ensure_table_is_initialized();
+	ensure_server_started();
 
 	ht_allocation_bucket_t *bucket = get_bucket(bt);
 
@@ -172,6 +180,7 @@ void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size)
 void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 {
 	ensure_table_is_initialized();
+	ensure_server_started();
 
 	ht_allocation_bucket_t *bucket = get_bucket(bt);
 
