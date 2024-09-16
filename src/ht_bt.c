@@ -1,85 +1,62 @@
 #include <stdlib.h>
 #include <string.h>
-
+#include <execinfo.h>
 #include <pthread.h>
-// #include <dlfcn.h>
-// #include <link.h>
+
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
 
 #include "ht_bt.h"
 
-__thread void *stack_bottom = NULL;
-// __thread void *exec_load_base = NULL;
-
-// static void *get_exec_load_base()
-// {
-// 	void *dyn = _DYNAMIC;
-// 	Dl_info info;
-// 	if (dladdr(dyn, &info) == 0) {
-// 		return NULL;
-// 	}
-
-// 	return info.dli_fbase;
-// }
-
-// static void *get_current_thread_stack_start()
-// {
-// 	pthread_attr_t attr;
-// 	void *stackaddr;
-// 	size_t stacksize;
-
-// 	if (pthread_getattr_np(pthread_self(), &attr)) {
-// 		return NULL;
-// 	}
-
-// 	if (pthread_attr_getstack(&attr, &stackaddr, &stacksize)) {
-// 		return NULL;
-// 	}
-
-// 	pthread_attr_destroy(&attr);
-
-// 	return (void *)((uintptr_t)stackaddr + stacksize);
-// }
+__thread int uw_context_initialized = 0;
+__thread unw_context_t context;
+__thread unw_cursor_t cursor;
 
 int ht_bt_collect(ht_backtrace_t *bt, int skip)
 {
-	// bt->size = backtrace((void**) &bt->entries, HT_MAX_BT_DEPTH);
-	// if (stack_bottom == NULL) {
-	// 	stack_bottom = get_current_thread_stack_start();
-	// 	if (stack_bottom == NULL) {
-	// 		return -1;
-	// 	}
-	// }
-
-	// if (exec_load_base == NULL) {
-	// 	exec_load_base = get_exec_load_base();
-	// 	if (exec_load_base == NULL) {
-	// 		return -2;
-	// 	}
-	// }
-
 	memset(bt, 0, sizeof(ht_backtrace_t));
 
-	// inspired by gpdb backptrace collection
+	if (!uw_context_initialized) {
+		unw_getcontext(&context);
+		unw_init_local(&cursor, &context);
+		uw_context_initialized = 1;
+	}
 
-	uintptr_t current_frame = (uintptr_t)__builtin_frame_address(0);
-	void **next_frame = (void **)current_frame;
-
-	for (int i = 0; i < HT_MAX_BT_DEPTH; ++i) {
-		if (/*(uintptr_t)*next_frame > (uintptr_t)stack_bottom ||*/ // really dangerous to not check if we gone out the stack
-		    (uintptr_t)*next_frame < (uintptr_t)next_frame) {
+	while (unw_step(&cursor) > 0 && bt->size < HT_MAX_BT_DEPTH) {
+		unw_word_t pc;
+		unw_get_reg(&cursor, UNW_REG_IP, &pc);
+		if (pc == 0) {
 			break;
 		}
 
-		if (skip > 0) {
-			skip--;
+		if (skip) {
+			--skip;
 		} else {
-			uintptr_t *frame_address =
-				(uintptr_t *)(next_frame + 1);
-			bt->entries[bt->size++] = (void *)*frame_address;
+			bt->entries[bt->size++] = (void *)pc;
 		}
-
-		next_frame = (void **)*next_frame;
 	}
+
+	// inspired by gpdb backptrace collection
+
+	// uintptr_t current_frame = (uintptr_t)__builtin_frame_address(0);
+	// void **next_frame = (void **)current_frame;
+
+	// for (int i = 0; i < HT_MAX_BT_DEPTH; ++i) {
+	// 	if (/*(uintptr_t)*next_frame > (uintptr_t)stack_bottom ||*/ // really dangerous to not check if we gone out the stack
+	// 	    (uintptr_t)*next_frame < (uintptr_t)next_frame) {
+	// 		break;
+	// 	}
+
+	// 	if (skip > 0) {
+	// 		skip--;
+	// 	} else {
+	// 		uintptr_t *frame_address =
+	// 			(uintptr_t *)(next_frame + 1);
+	// 		bt->entries[bt->size++] = (void *)*frame_address;
+	// 	}
+
+	// 	next_frame = (void **)*next_frame;
+	// }
 
 	return 0;
 }

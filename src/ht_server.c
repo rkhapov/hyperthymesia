@@ -18,9 +18,6 @@
 
 #define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len)) + 1))
 
-static pthread_t server_thread_id;
-static pthread_attr_t server_thread_attr;
-
 static const char *human_readable_size(size_t size)
 {
 	static char buf[128];

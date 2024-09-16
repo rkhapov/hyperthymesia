@@ -50,8 +50,12 @@ set(SOURCES
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})
 target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(hyperthymesia unwind)
 
 add_executable(benchmark tests/benchmark.c)
+
+add_executable(benchmark_linked tests/benchmark.c)
+target_link_libraries(benchmark_linked hyperthymesia)
 
 add_executable(test_leak tests/test_leak.c)
 

@@ -6,6 +6,7 @@
 typedef struct ht_alloc_header {
 	ht_backtrace_t alloc_bt;
 	size_t alloc_size;
+	size_t managed;
 } ht_alloc_header_t;
 
 #endif // HYPERTHYMESIA_ALLOC_FRAME_H

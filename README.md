@@ -24,7 +24,12 @@ addr2line -e /lib/x86_64-linux-gnu/libc.so.6 0x93a9f _IO_file_xsputn
 
 ## How to use
 
-Build libhyperthymesia:
+First:
+```
+sudo apt-get install libunwind-dev
+```
+
+And then build libhyperthymesia:
 ```
 make build_release
 or
@@ -50,21 +55,4 @@ nc -U /tmp/ht.sock
 
 ## Performance
 
-Not well-tested, but looks like allocation in app becomes `1-3` times slower for commonly used sizes.
-My tests shows:
-```
-rkhapov@rkhapov-dev-vm:~/hyperthymesia/build$ ./run.py 
-allocation for size 8 is slowed from 15.713 to 18.700 times
-allocation for size 16 is slowed from 3.943 to 4.569 times
-allocation for size 256 is slowed from 1.221 to 1.361 times
-allocation for size 512 is slowed from 1.119 to 1.304 times
-allocation for size 4096 is slowed from 0.959 to 1.025 times
-allocation for size 16384 is slowed from 0.905 to 0.954 times
-
-reallocation for size 8 is slowed from 13.9283 to 15.0428 times
-reallocation for size 16 is slowed from 27.0603 to 29.5923 times
-reallocation for size 256 is slowed from 1.5029 to 1.6514 times
-reallocation for size 512 is slowed from 1.2725 to 1.3692 times
-reallocation for size 4096 is slowed from 1.0259 to 1.0309 times
-reallocation for size 16384 is slowed from 0.9872 to 0.9971 times
-```
+TDB
