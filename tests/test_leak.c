@@ -134,6 +134,41 @@ void *thread2_routine(UNUSED void *arg)
 	return NULL;
 }
 
+NO_INLINE void *t3_func2()
+{
+	return calloc(10, 10);
+}
+
+NO_INLINE void *t3_func1()
+{
+	return t3_func2();
+}
+
+void *thread3_routine(UNUSED void *arg)
+{
+	do_register_stack_hint_func();
+
+	int leaked = 0;
+	int prev_leaked = 0;
+	while (1) {
+		void *ptr = t2_func1();
+		if ((rand() & 1) == 1) {
+			free(ptr);
+		} else {
+			leaked += 100;
+		}
+
+		if (leaked != prev_leaked) {
+			printf("[t3] leaked %d\n", leaked);
+			prev_leaked = leaked;
+		}
+
+		sleep(1);
+	}
+
+	return NULL;
+}
+
 int main()
 {
 	do_register_stack_hint_func();
@@ -144,15 +179,18 @@ int main()
 
 	pthread_t thread1;
 	pthread_t thread2;
+	pthread_t thread3;
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 
 	pthread_create(&thread1, &attr, thread1_routine, NULL);
 	pthread_create(&thread2, &attr, thread2_routine, NULL);
+	pthread_create(&thread3, &attr, thread3_routine, NULL);
 
 	pthread_join(thread1, NULL);
 	pthread_join(thread2, NULL);
+	pthread_join(thread3, NULL);
 
 	return 0;
 }
