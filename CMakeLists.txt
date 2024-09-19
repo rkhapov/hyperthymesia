@@ -19,9 +19,9 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
         set(CMAKE_BUILD_TYPE "Debug")
 endif()
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -fno-omit-frame-pointer -O2 -pthread -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -O2 -pthread -D_GNU_SOURCE")
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -fno-omit-frame-pointer -O0 -pthread -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0 -pthread -D_GNU_SOURCE")
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "ASAN")
     set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -g -fsanitize=address,undefined -fno-sanitize-recover=all -pedantic -Wall -Wextra -Wstrict-aliasing -g -fno-omit-frame-pointer -O0 -pthread -D_GNU_SOURCE")
 endif()
@@ -37,6 +37,7 @@ set(HEADERS
     include/ht_real_funcs.h
     include/ht_log.h
     include/ht_server.h
+    include/ht_hints.h
 )
 
 set(SOURCES
@@ -46,6 +47,7 @@ set(SOURCES
     src/ht_real_funcs.c
     src/ht_log.c
     src/ht_server.c
+    src/ht_hints.c
 )
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})

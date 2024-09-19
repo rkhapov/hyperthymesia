@@ -6,6 +6,47 @@
 #include <time.h>
 #include <math.h>
 #include <time.h>
+#include <pthread.h>
+
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <dlfcn.h>
+
+__thread void *stack_begin = NULL;
+__thread void *stack_end = NULL;
+
+void ht_stack_location_hint(void **begin, void **end)
+{
+	if (__builtin_expect(stack_begin == NULL || stack_end == NULL, 0)) {
+		pthread_attr_t attr;
+		void *stackaddr;
+		size_t stacksize;
+
+		pthread_getattr_np(pthread_self(), &attr);
+		pthread_attr_getstack(&attr, &stackaddr, &stacksize);
+
+		stack_begin = stackaddr;
+		stack_end = (void *)((uintptr_t)stackaddr + stacksize);
+	}
+
+	*begin = stack_begin;
+	*end = stack_end;
+
+	return;
+}
+
+typedef void (*stack_hintfn_t)(void **begin, void **end);
+void do_register_stack_hint_func()
+{
+	void (*registerfn)(stack_hintfn_t) = (void (*)(stack_hintfn_t))dlsym(
+		RTLD_DEFAULT, "ht_register_stack_location_hint");
+	if (registerfn == NULL) {
+		return;
+	}
+
+	registerfn(ht_stack_location_hint);
+}
 
 #define benchmark_alloc_count 100000
 static uint64_t *benchmark_ptrs[benchmark_alloc_count];
@@ -89,6 +130,8 @@ static void run_realloc_test()
 
 int main(int argc, char **argv)
 {
+	do_register_stack_hint_func();
+
 	if (argc < 2) {
 		printf("expected argument: function name (malloc or realloc) to test\n");
 		return 1;
