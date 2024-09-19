@@ -7,11 +7,6 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     return()
 endif ()
 
-if (NOT DEFINED HT_BT_DEPTH)
-    set(HT_BT_DEPTH 5)
-endif()
-add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
-
 set(CLANGCOMPILERSTANDART gnu11)
 set(CMAKE_C_STANDARD_REQUIRED gnu11)
 
@@ -27,6 +22,11 @@ elseif("${CMAKE_BUILD_TYPE}" STREQUAL "ASAN")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CC_FLAGS}")
+
+if (NOT DEFINED HT_BT_DEPTH)
+    set(HT_BT_DEPTH 5)
+endif()
+add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
 
 set(HEADERS
     include/ht_malloc.h
