@@ -186,7 +186,9 @@ void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size)
 	pthread_mutex_unlock(&bucket->mutex);
 }
 
-void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg)
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg,
+			   size_t *total_allocations_count,
+			   size_t *used_buckets_count)
 {
 	ensure_table_is_initialized();
 
@@ -195,6 +197,9 @@ void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg)
 
 	const size_t bc = global_allocations_table.buckets_count;
 	ht_allocation_bucket_t *buckets = global_allocations_table.buckets;
+
+	size_t total_allocs = 0;
+	size_t used_buckets = 0;
 
 	for (size_t i = 0; i < bc; ++i) {
 		ht_allocation_bucket_t *bucket = &buckets[i];
@@ -231,5 +236,18 @@ void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg)
 				cb(&buf[i], arg);
 			}
 		}
+
+		total_allocs += used;
+		if (used) {
+			++used_buckets;
+		}
+	}
+
+	if (total_allocations_count != NULL) {
+		*total_allocations_count = total_allocs;
+	}
+
+	if (used_buckets_count != NULL) {
+		*used_buckets_count = used_buckets;
 	}
 }

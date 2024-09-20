@@ -25,6 +25,8 @@ void ht_table_register_allocation(const ht_backtrace_t *bt, size_t size);
 
 void ht_table_register_deallocation(const ht_backtrace_t *bt, size_t size);
 
-void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg);
+void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg,
+			   size_t *total_allocations_count,
+			   size_t *used_buckets_count);
 
 #endif // HYPERTHYMESIA_TABLE_H

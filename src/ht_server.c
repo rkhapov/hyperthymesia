@@ -98,7 +98,15 @@ static int server_routine(__attribute__((unused)) void *arg)
 			abort();
 		}
 
-		ht_table_foreach_stat(send_alloc_stat, &clientfd);
+		size_t total_allocs, used_buckets;
+
+		ht_table_foreach_stat(send_alloc_stat, &clientfd, &total_allocs,
+				      &used_buckets);
+
+		char buf[128];
+		sprintf(buf, "allocations = %zu buckets = %zu\n", total_allocs,
+			used_buckets);
+		sock_write_no_warn(clientfd, buf, strlen(buf));
 
 		close(clientfd);
 	}
