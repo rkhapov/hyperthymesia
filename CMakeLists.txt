@@ -60,4 +60,6 @@ target_link_libraries(benchmark_linked hyperthymesia)
 
 add_executable(test_leak tests/test_leak.c)
 
+add_executable(test_fork tests/test_fork.c)
+
 configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)

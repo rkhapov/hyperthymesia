@@ -67,9 +67,10 @@ static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 	sock_write_no_warn(*clientfd, stat_buf, strlen(stat_buf));
 }
 
-static int server_routine(void *arg)
+static int server_routine(__attribute__((unused)) void *arg)
 {
-	const char *path = (const char *)arg;
+	char path[128];
+	sprintf(path, "/tmp/ht.%d.sock", getpid());
 
 	int fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd == -1) {
@@ -105,14 +106,14 @@ static int server_routine(void *arg)
 	return 0;
 }
 
-void ht_start_server(const char *socket_path)
+void ht_start_server()
 {
 	static char server_stack[16384];
 
 	int clonerc =
 		clone(server_routine, server_stack + sizeof(server_stack),
 		      CLONE_THREAD | CLONE_FILES | CLONE_VM | CLONE_SIGHAND,
-		      (void *)socket_path);
+		      NULL);
 	if (clonerc == -1) {
 		ht_log_perror("clone");
 	}

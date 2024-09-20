@@ -40,21 +40,6 @@ static size_t read_variable(const char *name, size_t default_value)
 	return default_value;
 }
 
-static char server_socket_path[128];
-
-static const char *read_socket_path()
-{
-	char *path = getenv(server_socket_path_var_name);
-	if (path == NULL || strlen(path) > sizeof(server_socket_path) - 1) {
-		sprintf(server_socket_path, "/tmp/ht.%d.sock", getpid());
-		return server_socket_path;
-	}
-
-	strcpy(server_socket_path, path);
-
-	return server_socket_path;
-}
-
 static void table_init()
 {
 	size_t buckets_count = read_variable(buckets_count_var_name, 47351);
@@ -93,7 +78,8 @@ static void table_init()
 
 static void server_start()
 {
-	ht_start_server(read_socket_path());
+	pthread_atfork(NULL, NULL, ht_start_server);
+	ht_start_server();
 }
 
 static ht_alloc_stat_t *find_stats_in_bucket(ht_allocation_bucket_t *bucket,
