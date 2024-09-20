@@ -66,11 +66,11 @@ static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 
 	ptr += sprintf(ptr, "], ");
 
-	ptr += sprintf(ptr, "\"allocs\": %zu, ", stat->alloc_count);
-	ptr += sprintf(ptr, "\"free\": %zu, ", stat->free_count);
+	ptr += sprintf(ptr, "\"allocs\": %llu, ", stat->alloc_count);
+	ptr += sprintf(ptr, "\"free\": %llu, ", stat->free_count);
 	ptr += sprintf(ptr, "\"size_human\": \"%s\", ",
 		       human_readable_size(stat->total_size));
-	ptr += sprintf(ptr, "\"size\": %zu", stat->total_size);
+	ptr += sprintf(ptr, "\"size\": %llu", stat->total_size);
 
 	ptr += sprintf(ptr, "}, ");
 
