@@ -8,25 +8,41 @@ that are abailable from socket file to read, without application stop.
 
 In the result, table looks like:
 ```
-0x851a5 (0x7d54202851a5) | _IO_file_doallocate of /lib/x86_64-linux-gnu/libc.so.6
-0x95514 (0x7d5420295514) | _IO_doallocbuf of /lib/x86_64-linux-gnu/libc.so.6
-0x92f80 (0x7d5420292f80) | _IO_file_overflow of /lib/x86_64-linux-gnu/libc.so.6
-	allocs = 1 free = 0 total_size = 1024 bytes
-
-0x280e (0x7d542061080e) | calloc of ./libhyperthymesia.so
-0x145ac (0x7d542062f5ac) | _dl_allocate_tls of /lib64/ld-linux-x86-64.so.2
-0x9d607 (0x7d542029d607) | pthread_create of /lib/x86_64-linux-gnu/libc.so.6
-	allocs = 2 free = 0 total_size = 608 bytes
-
-0x15a5 (0x5d71b4a955a5) | (null) of ./test_leak
-0x15b9 (0x5d71b4a955b9) | (null) of ./test_leak
-0x15ed (0x5d71b4a955ed) | (null) of ./test_leak
-	allocs = 22 free = 22 total_size = 0 bytes
-
-0x1498 (0x5d71b4a95498) | (null) of ./test_leak
-0x14ac (0x5d71b4a954ac) | (null) of ./test_leak
-0x14e0 (0x5d71b4a954e0) | (null) of ./test_leak
-	allocs = 22 free = 15 total_size = 700 bytes
+{
+  "allocs": [
+    {
+      "bt": [
+        "0x851a5 (0x71e5098851a5) | _IO_file_doallocate of /lib/x86_64-linux-gnu/libc.so.6",
+        "0x95514 (0x71e509895514) | _IO_doallocbuf of /lib/x86_64-linux-gnu/libc.so.6",
+        "0x92f80 (0x71e509892f80) | _IO_file_overflow of /lib/x86_64-linux-gnu/libc.so.6"
+      ],
+      "allocs": 1,
+      "free": 0,
+      "size_human": "1024 bytes",
+      "size": 1024
+    },
+    {
+      "bt": [
+        "0x1495 (0x5faa1e929495) | (null) of ./test_leak",
+        "0x14a9 (0x5faa1e9294a9) | (null) of ./test_leak",
+        "0x14dd (0x5faa1e9294dd) | (null) of ./test_leak"
+      ],
+      "allocs": 5,
+      "free": 4,
+      "size_human": "100 bytes",
+      "size": 100
+    },
+    {
+      "bt": [],
+      "allocs": 0,
+      "free": 0,
+      "size_human": "0",
+      "size": 0
+    }
+  ],
+  "allocation_stacks": 6,
+  "buckets": 6
+}
 ```
 
 ## How to use
@@ -53,7 +69,7 @@ cd build
 HT_SOCKET=/tmp/ht.sock LD_PRELOAD=$(pwd)/libhyperthymesia.so ./test_leak
 ...
 
-nc -U /tmp/ht.sock
+nc -U /tmp/ht.sock | jq
 ```
 
 ## Performance

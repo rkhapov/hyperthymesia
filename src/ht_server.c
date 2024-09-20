@@ -39,29 +39,40 @@ static const char *human_readable_size(size_t size)
 
 static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 {
-	static char stat_buf[1024];
+	static char stat_buf[4096];
 	char *ptr = stat_buf;
+
+	ptr += sprintf(ptr, "{\"bt\": [");
 
 	for (size_t i = 0; i < stat->bt.size; ++i) {
 		void *bt = stat->bt.entries[i];
 
 		Dl_info info;
 		if (dladdr(bt, &info) == 0) {
-			ptr += sprintf(ptr, "%p (unknown)\n", bt);
+			ptr += sprintf(ptr, "\"%p (unknown)\"", bt);
 		} else {
 			void *calibrated = (void *)((uintptr_t)bt -
 						    (uintptr_t)info.dli_fbase);
 
-			ptr += sprintf(ptr, "%p (%p) | %s of %s\n", calibrated,
-				       bt, info.dli_sname, info.dli_fname);
+			ptr += sprintf(ptr, "\"%p (%p) | %s of %s\"",
+				       calibrated, bt, info.dli_sname,
+				       info.dli_fname);
+		}
+
+		if (i != stat->bt.size - 1) {
+			ptr += sprintf(ptr, ", ");
 		}
 	}
 
-	ptr += sprintf(ptr, "\tallocs = %llu free = %llu total_size = %s\n\n",
-		       stat->alloc_count, stat->free_count,
-		       human_readable_size(stat->total_size));
+	ptr += sprintf(ptr, "], ");
 
-	*ptr = 0;
+	ptr += sprintf(ptr, "\"allocs\": %zu, ", stat->alloc_count);
+	ptr += sprintf(ptr, "\"free\": %zu, ", stat->free_count);
+	ptr += sprintf(ptr, "\"size_human\": \"%s\", ",
+		       human_readable_size(stat->total_size));
+	ptr += sprintf(ptr, "\"size\": %zu", stat->total_size);
+
+	ptr += sprintf(ptr, "}, ");
 
 	int *clientfd = arg;
 	sock_write_no_warn(*clientfd, stat_buf, strlen(stat_buf));
@@ -100,12 +111,19 @@ static int server_routine(__attribute__((unused)) void *arg)
 
 		size_t total_allocs, used_buckets;
 
+		sock_write_no_warn(clientfd, "{\"allocs\": [", 12);
+
 		ht_table_foreach_stat(send_alloc_stat, &clientfd, &total_allocs,
 				      &used_buckets);
 
+		// write an empty object, to fix trailing comma
+		const char *empty =
+			"{\"bt\": [], \"allocs\": 0, \"free\": 0, \"size_human\": \"0\", \"size\": 0}";
+		sock_write_no_warn(clientfd, empty, strlen(empty));
+
 		char buf[128];
-		sprintf(buf, "allocations = %zu buckets = %zu\n", total_allocs,
-			used_buckets);
+		sprintf(buf, "], \"allocation_stacks\": %zu, \"buckets\": %zu}",
+			total_allocs, used_buckets);
 		sock_write_no_warn(clientfd, buf, strlen(buf));
 
 		close(clientfd);

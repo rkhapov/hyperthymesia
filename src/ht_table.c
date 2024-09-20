@@ -232,8 +232,8 @@ void ht_table_foreach_stat(ht_alloc_stat_callback_t cb, void *arg,
 
 			pthread_mutex_unlock(&bucket->mutex);
 
-			for (size_t i = 0; i < part_size; ++i) {
-				cb(&buf[i], arg);
+			for (size_t j = 0; j < part_size; ++j) {
+				cb(&buf[j], arg);
 			}
 		}
 
