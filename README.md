@@ -58,18 +58,18 @@ And then, if you want to collect statistics of allocations for the program,
 you must do:
 - build your application with `-fno-omit-frame-pointer` and `-fno-optimize-sibling-calls` (optional but highly recommended)
 - inside the app, you should call the `ht_register_stack_location_hint` function, to make stack location hints (see benchmark or test_leak example)
-- run your app with smth like `HT_SOCKET=/tmp/ht.sock LD_PRELOAD=<full path to libhyperthymesia.so> ./your_app`
-- obtain allocation stat with `nc -U /tmp/ht.sock`
+- run your app with smth like `LD_PRELOAD=<full path to libhyperthymesia.so> ./your_app`
+- obtain allocation stat with `nc -U /tmp/ht.<your_app pid>.sock`
 
 ## Example
 Build an example with: `make build_dbg`
 Test it with:
 ```bash
 cd build
-HT_SOCKET=/tmp/ht.sock LD_PRELOAD=$(pwd)/libhyperthymesia.so ./test_leak
+LD_PRELOAD=$(pwd)/libhyperthymesia.so ./test_leak
 ...
 
-nc -U /tmp/ht.sock | jq
+nc -U /tmp/ht.<test_leak pid>.sock | jq
 ```
 
 ## Performance
