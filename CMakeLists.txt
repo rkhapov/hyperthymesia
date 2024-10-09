@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 project(hyperthymesia C)
 
+set(PROJECT_NAME hyperthymesia)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "hyperthymesia is сurrently available only under linux systems")
     return()
@@ -64,3 +68,5 @@ add_executable(test_fork tests/test_fork.c)
 
 configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)
 configure_file(tools/sorter.py ${CMAKE_CURRENT_BINARY_DIR}/sorter.py COPYONLY)
+
+include(DebianPackage)

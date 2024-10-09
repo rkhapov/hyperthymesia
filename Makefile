@@ -13,6 +13,7 @@ clean:
 	rm -fr $(BUILD_TEST_DIR)
 	rm -fr $(BUILD_REL_DIR)
 	rm -fr $(BUILD_TEST_ASAN_DIR)
+	rm -fr _packages
 
 apply_fmt:
 	find ./ -maxdepth 5 -path './include/**.h' -o -path './src/**.c' -o -path './tests/**.c' | xargs -n 1 -t -P $(COMPILE_CONCURRENCY) $(FMT_BIN) -i
@@ -28,3 +29,6 @@ build_release: clean
 build_asan: clean
 	mkdir -p $(BUILD_TEST_ASAN_DIR)
 	cd $(BUILD_TEST_ASAN_DIR) && $(CMAKE_BIN) -DCMAKE_BUILD_TYPE=ASAN $(HM_DIR) && make -j$(COMPILE_CONCURRENCY)
+
+build_release_deb: build_release
+	cd $(BUILD_REL_DIR) && cpack -G DEB
