@@ -37,7 +37,6 @@ execute_process(
     OUTPUT_VARIABLE VERSION_NUMBER
     RESULT_VARIABLE VERSION_NUMBER_RESULT
     OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
 )
 if(NOT "${VERSION_NUMBER_RESULT}" STREQUAL "0")
     message(FATAL_ERROR "can't get version number")
@@ -47,7 +46,7 @@ execute_process(
     OUTPUT_VARIABLE VERSION_GIT
     RESULT_VARIABLE VERSION_GIT_RESULT
     OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET)
+)
 if(NOT "${VERSION_GIT_RESULT}" STREQUAL "0")
     message(FATAL_ERROR "can't get git patch version")
 endif()
@@ -79,15 +78,20 @@ set(SOURCES
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})
 target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(hyperthymesia dl)
 
 add_executable(benchmark tests/benchmark.c)
+target_link_libraries(benchmark dl)
 
 add_executable(benchmark_linked tests/benchmark.c)
 target_link_libraries(benchmark_linked hyperthymesia)
+target_link_libraries(benchmark_linked dl)
 
 add_executable(test_leak tests/test_leak.c)
+target_link_libraries(test_leak dl)
 
 add_executable(test_fork tests/test_fork.c)
+target_link_libraries(test_fork dl)
 
 configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)
 configure_file(tools/sorter.py ${CMAKE_CURRENT_BINARY_DIR}/sorter.py COPYONLY)

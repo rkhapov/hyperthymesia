@@ -1,0 +1,26 @@
+ARG codename
+
+FROM ubuntu:${codename:-bionic}
+
+RUN apt-get update
+RUN apt purge --auto-remove cmake
+RUN apt-get install -y \
+    make \
+    gcc \
+    wget \
+    git \
+    build-essential \
+    software-properties-common \
+    lsb-release
+RUN apt clean all
+
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+RUN apt-get update && apt-get install -y cmake
+
+COPY . /hyperthymesia
+
+# hyperthymesia should be mount on this path
+WORKDIR /hyperthymesia
+
+RUN make build_release_deb

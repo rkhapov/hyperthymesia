@@ -1,4 +1,4 @@
 build
 build-asan
 .vscode
-_packages
+_packages*

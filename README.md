@@ -78,6 +78,12 @@ Debian package can be built with:
 make build_release_deb
 ```
 
+To build debian packages for specified ubuntu versions:
+```
+make build_dpkg_ubuntu_bionic
+make build_dpkg_ubuntu_jammy
+```
+
 The result will be stored in _packages folder.
 
 ## Performance
