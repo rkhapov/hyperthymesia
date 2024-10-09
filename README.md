@@ -72,6 +72,14 @@ LD_PRELOAD=$(pwd)/libhyperthymesia.so ./test_leak
 nc -U /tmp/ht.<test_leak pid>.sock | jq
 ```
 
+## Debian package
+Debian package can be built with:
+```
+make build_release_deb
+```
+
+The result will be stored in _packages folder.
+
 ## Performance
 
 In my machine the simple test gives the next results:

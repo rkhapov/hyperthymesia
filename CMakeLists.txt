@@ -15,7 +15,7 @@ set(CLANGCOMPILERSTANDART gnu11)
 set(CMAKE_C_STANDARD_REQUIRED gnu11)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-        set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Debug")
 endif()
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(CMAKE_C_FLAGS "-std=${CLANGCOMPILERSTANDART} -pedantic -Wall -Wextra -Wstrict-aliasing -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-builtin-calloc -fno-builtin-malloc -fno-builtin-realloc -fno-builtin-free -O2 -pthread -D_GNU_SOURCE")
@@ -31,6 +31,29 @@ if (NOT DEFINED HT_BT_DEPTH)
     set(HT_BT_DEPTH 5)
 endif()
 add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
+
+execute_process(
+    COMMAND git rev-list --count HEAD
+    OUTPUT_VARIABLE VERSION_NUMBER
+    RESULT_VARIABLE VERSION_NUMBER_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+if(NOT "${VERSION_NUMBER_RESULT}" STREQUAL "0")
+    message(FATAL_ERROR "can't get version number")
+endif()
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    OUTPUT_VARIABLE VERSION_GIT
+    RESULT_VARIABLE VERSION_GIT_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if(NOT "${VERSION_GIT_RESULT}" STREQUAL "0")
+    message(FATAL_ERROR "can't get git patch version")
+endif()
+set(HT_VERSION "${VERSION_NUMBER}-${VERSION_GIT}-d${HT_BT_DEPTH}")
+add_definitions(-DHT_VERSION="${HT_VERSION}")
+message("Hyperthymesia version=${HT_VERSION}")
 
 set(HEADERS
     include/ht_malloc.h
@@ -68,5 +91,7 @@ add_executable(test_fork tests/test_fork.c)
 
 configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)
 configure_file(tools/sorter.py ${CMAKE_CURRENT_BINARY_DIR}/sorter.py COPYONLY)
+
+install(TARGETS hyperthymesia DESTINATION /opt/hyperthymesia/lib)
 
 include(DebianPackage)

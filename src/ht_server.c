@@ -16,7 +16,11 @@
 #include "ht_table.h"
 #include "ht_log.h"
 
-#define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len)) + 1))
+#ifndef HT_VERSION
+#define HT_VERSION "<version-unknown>"
+#endif
+
+#define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len))))
 
 static const char *human_readable_size(size_t size)
 {
@@ -108,10 +112,11 @@ static int server_routine(__attribute__((unused)) void *arg)
 			ht_log_perror("accept");
 			abort();
 		}
-
 		size_t total_allocs, used_buckets;
 
-		sock_write_no_warn(clientfd, "{\"allocs\": [", 12);
+		sock_write_no_warn(clientfd, "{\"version\": \"", 13);
+		sock_write_no_warn(clientfd, HT_VERSION, strlen(HT_VERSION));
+		sock_write_no_warn(clientfd, "\", \"allocs\": [", 14);
 
 		ht_table_foreach_stat(send_alloc_stat, &clientfd, &total_allocs,
 				      &used_buckets);
