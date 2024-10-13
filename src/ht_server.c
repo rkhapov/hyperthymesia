@@ -20,7 +20,7 @@
 #define HT_VERSION "<version-unknown>"
 #endif
 
-#define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len))))
+#define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len)) + 1))
 
 static const char *human_readable_size(size_t size)
 {

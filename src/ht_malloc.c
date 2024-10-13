@@ -4,12 +4,82 @@
 #include <assert.h>
 #include <malloc.h>
 
+#include <sys/mman.h>
+
 #include "ht_alloc_header.h"
 #include "ht_bt.h"
 #include "ht_table.h"
 #include "ht_real_funcs.h"
 #include "ht_log.h"
 #include "ht_malloc.h"
+
+static void *mmap_malloc(size_t size)
+{
+	void *addr = mmap(NULL, size, PROT_READ | PROT_WRITE,
+			  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (addr != MAP_FAILED) {
+		return addr;
+	}
+
+	return NULL;
+}
+
+static void mmap_free(void *addr, size_t size)
+{
+	// NULL check is performed in free
+
+	munmap(addr, size);
+}
+
+static void *mmap_realloc(void *old_addr, size_t old_size, size_t new_size)
+{
+	// NULL check is performed in realloc
+
+	void *new_addr = mmap_malloc(new_size);
+	if (new_addr == NULL) {
+		return NULL;
+	}
+
+	memcpy(new_addr, old_addr, old_size);
+
+	mmap_free(old_addr, old_size);
+
+	return new_addr;
+}
+
+static void *do_real_allocation(int managed, size_t size)
+{
+	if (__builtin_expect(managed, 1)) {
+		ht_malloc_func_t real_malloc = ht_get_real_malloc();
+
+		return real_malloc(size);
+	}
+
+	return mmap_malloc(size);
+}
+
+static void do_real_deallocation(int managed, void *addr, size_t size)
+{
+	if (__builtin_expect(managed, 1)) {
+		ht_free_func_t real_free = ht_get_real_free();
+
+		real_free(addr);
+	} else {
+		mmap_free(addr, size);
+	}
+}
+
+static void *do_real_reallocation(int managed, void *addr, size_t old_size,
+				  size_t new_size)
+{
+	if (__builtin_expect(managed, 1)) {
+		ht_realloc_func_t real_realloc = ht_get_real_realloc();
+
+		return real_realloc(addr, new_size);
+	}
+
+	return mmap_realloc(addr, old_size, new_size);
+}
 
 // we not interesting in registering recursive malloc
 // ex: mallocs in stack unwiding functions
@@ -20,10 +90,10 @@ void *malloc(size_t size)
 {
 	malloc_depth++;
 
-	ht_malloc_func_t real_malloc = ht_get_real_malloc();
+	int managed = malloc_depth == 1;
 
 	const size_t total_size = sizeof(ht_alloc_header_t) + size;
-	void *raw = real_malloc(total_size);
+	void *raw = do_real_allocation(managed, total_size);
 	if (raw == NULL) {
 		malloc_depth--;
 		return NULL;
@@ -31,7 +101,8 @@ void *malloc(size_t size)
 
 	ht_alloc_header_t *header = raw;
 
-	header->managed = malloc_depth == 1;
+	header->managed = managed;
+	header->alloc_size = size;
 
 	if (header->managed) {
 		if (ht_bt_collect(&header->alloc_bt, 2)) {
@@ -40,12 +111,11 @@ void *malloc(size_t size)
 			abort();
 		}
 
-		header->alloc_size = size;
-
 		ht_table_register_allocation(&header->alloc_bt, size);
 	}
 
 	malloc_depth--;
+
 	return (void *)(header + 1);
 }
 
@@ -65,8 +135,6 @@ void free(void *ptr)
 		return;
 	}
 
-	ht_free_func_t real_free = ht_get_real_free();
-
 	ht_alloc_header_t *header = ptr;
 	header--;
 
@@ -75,7 +143,8 @@ void free(void *ptr)
 					       header->alloc_size);
 	}
 
-	real_free((void *)header);
+	do_real_deallocation(header->managed, (void *)header,
+			     header->alloc_size);
 }
 
 void *realloc(void *ptr, size_t size)
@@ -95,12 +164,12 @@ void *realloc(void *ptr, size_t size)
 	 * some allocated memory, with wrong allocation backtrace.
 	*/
 
-	ht_realloc_func_t real_realloc = ht_get_real_realloc();
-
 	ht_alloc_header_t *header = ptr;
 	header--;
 
-	header = real_realloc(header, sizeof(ht_alloc_header_t) + size);
+	header = do_real_reallocation(header->managed, header,
+				      header->alloc_size,
+				      sizeof(ht_alloc_header_t) + size);
 	if (header == NULL) {
 		return NULL;
 	}
@@ -109,7 +178,6 @@ void *realloc(void *ptr, size_t size)
 		ht_table_register_deallocation(&header->alloc_bt,
 					       header->alloc_size);
 
-		header->alloc_size = size;
 		if (ht_bt_collect(&header->alloc_bt, 2)) {
 			// extremely unlikely...
 			// TODO: do smth more supportable here ?
@@ -119,6 +187,8 @@ void *realloc(void *ptr, size_t size)
 
 		ht_table_register_allocation(&header->alloc_bt, size);
 	}
+
+	header->alloc_size = size;
 
 	return (void *)(header + 1);
 }

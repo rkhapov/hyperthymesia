@@ -39,8 +39,9 @@ void ht_stack_location_hint(void **begin, void **end)
 typedef void (*stack_hintfn_t)(void **begin, void **end);
 void do_register_stack_hint_func()
 {
-	void (*registerfn)(stack_hintfn_t) = (void (*)(stack_hintfn_t))dlsym(
-		RTLD_DEFAULT, "ht_register_stack_location_hint");
+	void (*registerfn)(stack_hintfn_t);
+	*(void **)(&registerfn) =
+		dlsym(RTLD_DEFAULT, "ht_register_stack_location_hint");
 	if (registerfn == NULL) {
 		return;
 	}
