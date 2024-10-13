@@ -28,19 +28,10 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CC_FLAGS}")
 
 if (NOT DEFINED HT_BT_DEPTH)
-    set(HT_BT_DEPTH 5)
+    set(HT_BT_DEPTH 15)
 endif()
 add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
 
-execute_process(
-    COMMAND git rev-list --count HEAD
-    OUTPUT_VARIABLE VERSION_NUMBER
-    RESULT_VARIABLE VERSION_NUMBER_RESULT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if(NOT "${VERSION_NUMBER_RESULT}" STREQUAL "0")
-    message(FATAL_ERROR "can't get version number")
-endif()
 execute_process(
     COMMAND git rev-parse --short HEAD
     OUTPUT_VARIABLE VERSION_GIT
@@ -50,7 +41,7 @@ execute_process(
 if(NOT "${VERSION_GIT_RESULT}" STREQUAL "0")
     message(FATAL_ERROR "can't get git patch version")
 endif()
-set(HT_VERSION "${VERSION_NUMBER}-${VERSION_GIT}-d${HT_BT_DEPTH}")
+set(HT_VERSION "${VERSION_GIT}-d${HT_BT_DEPTH}")
 add_definitions(-DHT_VERSION="${HT_VERSION}")
 message("Hyperthymesia version=${HT_VERSION}")
 
