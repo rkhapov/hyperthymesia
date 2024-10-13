@@ -95,6 +95,9 @@ target_link_libraries(test_fork dl)
 configure_file(tests/run.py ${CMAKE_CURRENT_BINARY_DIR}/run.py COPYONLY)
 configure_file(tools/sorter.py ${CMAKE_CURRENT_BINARY_DIR}/sorter.py COPYONLY)
 
-install(TARGETS hyperthymesia DESTINATION /opt/hyperthymesia/lib)
+set(HT_INSTALL_PREFIX "/opt/hyperthymesia/")
+
+install(TARGETS hyperthymesia DESTINATION "${HT_INSTALL_PREFIX}/lib")
+install(DIRECTORY tools DESTINATION "${HT_INSTALL_PREFIX}")
 
 include(DebianPackage)
