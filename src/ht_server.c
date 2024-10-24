@@ -38,6 +38,8 @@ static const char *human_readable_size(size_t size)
 	return buf;
 }
 
+__thread int sent_alloc_stat_counter = 0;
+
 static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 {
 	static char stat_buf[4096];
@@ -77,6 +79,15 @@ static void send_alloc_stat(const ht_alloc_stat_t *stat, void *arg)
 
 	int *clientfd = arg;
 	sock_write_no_warn(*clientfd, stat_buf, strlen(stat_buf));
+
+	if (++sent_alloc_stat_counter > HT_TABLE_BLOCK_WRITE_NSTATS) {
+		struct timespec ts;
+		memset(&ts, 0, sizeof(struct timespec));
+		ts.tv_nsec = HT_TABLE_BLOCK_WRITE_SLEEP_NS;
+		ts.tv_sec = 0;
+		nanosleep(&ts, NULL);
+		sent_alloc_stat_counter = 0;
+	}
 }
 
 static int server_routine(__attribute__((unused)) void *arg)
@@ -110,6 +121,8 @@ static int server_routine(__attribute__((unused)) void *arg)
 			abort();
 		}
 		size_t total_allocs, used_buckets;
+
+		sent_alloc_stat_counter = 0;
 
 		sock_write_no_warn(clientfd, "{\"version\": \"", 13);
 		sock_write_no_warn(clientfd, HT_VERSION, strlen(HT_VERSION));
