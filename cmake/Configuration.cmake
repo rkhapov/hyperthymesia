@@ -6,6 +6,14 @@ if (NOT DEFINED HT_MAX_BT_DEPTH)
     set(HT_MAX_BT_DEPTH 15)
 endif()
 
+# Registration of every allocation is expensive
+# HT_ALLOC_SAMPLES allows to specify percentage of allocations
+# that will be managed (of 100)
+# Ex: 50 means that only half allocations will be managed
+if (NOT DEFINED HT_ALLOC_SAMPLES)
+    set(HT_ALLOC_SAMPLES 100)
+endif()
+
 # Sending table by unix socket
 # requires traversing it with acquiring the mutexes.
 # To reduce the impact of that action, the table is sent by

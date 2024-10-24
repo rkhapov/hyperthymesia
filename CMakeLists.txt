@@ -47,7 +47,7 @@ execute_process(
 if(NOT "${VERSION_GIT_RESULT}" STREQUAL "0")
     message(FATAL_ERROR "can't get git patch version")
 endif()
-set(HT_VERSION "${VERSION_NUMBER}-${VERSION_GIT}-d${HT_MAX_BT_DEPTH}")
+set(HT_VERSION "${VERSION_NUMBER}-${VERSION_GIT}-d${HT_MAX_BT_DEPTH}-s${HT_ALLOC_SAMPLES}")
 add_definitions(-DHT_VERSION="${HT_VERSION}")
 message("Hyperthymesia version=${HT_VERSION}")
 
@@ -63,6 +63,7 @@ set(HEADERS
     include/ht_log.h
     include/ht_server.h
     include/ht_hints.h
+    include/ht_rand.h
 )
 
 set(SOURCES
@@ -73,6 +74,7 @@ set(SOURCES
     src/ht_log.c
     src/ht_server.c
     src/ht_hints.c
+    src/ht_rand.c
 )
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})

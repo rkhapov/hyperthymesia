@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
+#include <time.h>
 
 #include <sys/mman.h>
 
@@ -12,6 +13,7 @@
 #include "ht_real_funcs.h"
 #include "ht_log.h"
 #include "ht_malloc.h"
+#include "ht_rand.h"
 
 static void *mmap_malloc(size_t size)
 {
@@ -86,6 +88,28 @@ static void *do_real_reallocation(int managed, void *addr, size_t old_size,
 // so we will manage only mallocs with depth = 1
 __thread int malloc_depth = 0;
 
+#if HT_ALLOC_SAMPLES > 0 && HT_ALLOC_SAMPLES < 100
+static pthread_once_t rng_init_once_control = PTHREAD_ONCE_INIT;
+
+static void init_rng()
+{
+	ht_rand_seed(time(NULL));
+}
+#endif
+
+static int is_allocation_in_sample()
+{
+#if HT_ALLOC_SAMPLES >= 100
+	return 1;
+#elif HT_ALLOC_SAMPLES <= 0
+	return 0;
+#else
+	(void)pthread_once(&rng_init_once_control, init_rng);
+
+	return (ht_rand_get() % 100) < HT_ALLOC_SAMPLES;
+#endif
+}
+
 void *malloc(size_t size)
 {
 	malloc_depth++;
@@ -101,7 +125,7 @@ void *malloc(size_t size)
 
 	ht_alloc_header_t *header = raw;
 
-	header->managed = managed;
+	header->managed = managed && is_allocation_in_sample();
 	header->alloc_size = size;
 
 	if (header->managed) {

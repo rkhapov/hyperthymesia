@@ -1,11 +1,19 @@
 #ifndef HYPERTHYMESIA_CONF_H
 #define HYPERTHYMESIA_CONF_H
 
+// Generated from ht_conf.h.in
+
 #cmakedefine HT_VERSION "@HT_VERSION@"
 #cmakedefine HT_MAX_BT_DEPTH @HT_MAX_BT_DEPTH@
 #cmakedefine HT_TABLE_BLOCK_WRITE_SLEEP_NS @HT_TABLE_BLOCK_WRITE_SLEEP_NS@
 #cmakedefine HT_TABLE_BLOCK_WRITE_NSTATS @HT_TABLE_BLOCK_WRITE_NSTATS@
 #cmakedefine HT_BUCKETS @HT_BUCKETS@
 #cmakedefine HT_BUCKET_LEN @HT_BUCKET_LEN@
+#cmakedefine HT_ALLOC_SAMPLES @HT_ALLOC_SAMPLES@
+
+// cmake replace 0-values variable with undef, idk why
+#ifndef HT_ALLOC_SAMPLES
+#define HT_ALLOC_SAMPLES 0
+#endif
 
 #endif // HYPERTHYMESIA_CONF_H
