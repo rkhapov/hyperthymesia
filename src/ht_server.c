@@ -15,10 +15,7 @@
 #include "ht_server.h"
 #include "ht_table.h"
 #include "ht_log.h"
-
-#ifndef HT_VERSION
-#define HT_VERSION "<version-unknown>"
-#endif
+#include "ht_conf.h"
 
 #define sock_write_no_warn(fd, msg, len) ((void)(write((fd), (msg), (len)) + 1))
 

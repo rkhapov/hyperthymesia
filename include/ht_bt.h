@@ -3,11 +3,9 @@
 
 #include <stdint.h>
 
-typedef void *ht_bt_entry_t;
+#include "ht_conf.h"
 
-#ifndef HT_MAX_BT_DEPTH
-#define HT_MAX_BT_DEPTH 5
-#endif
+typedef void *ht_bt_entry_t;
 
 typedef struct ht_backtrace {
 	size_t size;

@@ -72,6 +72,18 @@ LD_PRELOAD=$(pwd)/libhyperthymesia.so ./test_leak
 nc -U /tmp/ht.<test_leak pid>.sock | jq
 ```
 
+## Configuration
+### Compiletime
+There are 5 parameters of hyperthymesia that must be configure in compile time:
+ - backtrace size
+ - allocation table part size
+ - pause between sending parts
+ - number of buckets in allocation stats table, better to be a prime number
+ - initial length of the bucket
+
+To configure that values you can edit the [Configuration.cmake](./cmake/Configuration.cmake) file
+and then rebuild the project.
+
 ## Debian package
 Debian package can be built with:
 ```
@@ -85,6 +97,8 @@ make build_dpkg_ubuntu_jammy
 ```
 
 The result will be stored in _packages folder.
+
+Debian packages installs hyperthymesia files into `/opt/hyperthymesia`.
 
 ## Performance
 

@@ -27,10 +27,8 @@ endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CC_FLAGS}")
 
-if (NOT DEFINED HT_BT_DEPTH)
-    set(HT_BT_DEPTH 15)
-endif()
-add_compile_definitions(HT_MAX_BT_DEPTH=${HT_BT_DEPTH})
+include(Configuration)
+
 execute_process(
     COMMAND git rev-list --count HEAD
     OUTPUT_VARIABLE VERSION_NUMBER
@@ -49,9 +47,11 @@ execute_process(
 if(NOT "${VERSION_GIT_RESULT}" STREQUAL "0")
     message(FATAL_ERROR "can't get git patch version")
 endif()
-set(HT_VERSION "${VERSION_NUMBER}-${VERSION_GIT}-d${HT_BT_DEPTH}")
+set(HT_VERSION "${VERSION_NUMBER}-${VERSION_GIT}-d${HT_MAX_BT_DEPTH}")
 add_definitions(-DHT_VERSION="${HT_VERSION}")
 message("Hyperthymesia version=${HT_VERSION}")
+
+configure_file(include/ht_conf.h.in ht_conf.h @ONLY)
 
 set(HEADERS
     include/ht_malloc.h
@@ -76,7 +76,7 @@ set(SOURCES
 )
 
 add_library(hyperthymesia SHARED ${HEADERS} ${SOURCES})
-target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(hyperthymesia PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(hyperthymesia dl)
 
 add_executable(benchmark tests/benchmark.c)
